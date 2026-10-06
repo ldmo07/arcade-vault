@@ -1,6 +1,6 @@
 # SPEC 01 — MVP visual: todas las pantallas de Arcade Vault
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** ninguna
 > **Date:** 2026-10-06
 > **Objective:** Portar a Next.js (App Router) las 5 pantallas de `references/templates/` (biblioteca, detalle, reproductor, auth y salón de la fama) como MVP solo visual, con datos mock y sin implementar ningún juego.
@@ -103,22 +103,22 @@ Antes de empezar: leer `node_modules/next/dist/docs/01-app` (Next 16: `params` e
 
 ## Criterios de aceptación
 
-- [ ] `npm run lint` y `npm run build` terminan sin errores.
-- [ ] Existen las rutas `/`, `/juegos/[id]`, `/juegos/[id]/jugar`, `/auth` y `/salon`, y cada una renderiza sin errores en la consola del navegador.
-- [ ] `/juegos/no-existe` y `/juegos/no-existe/jugar` devuelven la página 404.
-- [ ] La Biblioteca muestra 8 tarjetas; el chip "SHOOTER" deja exactamente 2 (INVASORES y ROCAS).
-- [ ] Buscar "xyz" en la Biblioteca muestra "NO HAY RESULTADOS".
-- [ ] Clic en una tarjeta o en su botón JUGAR lleva a `/juegos/<id>`; el botón "JUGAR AHORA" lleva a `/juegos/<id>/jugar`.
-- [ ] Detalle muestra 10 filas de leaderboard y los valores `plays` y `best` del juego.
-- [ ] En el Reproductor la puntuación aumenta sola, PAUSA la detiene y muestra "EN PAUSA", y REANUDAR la retoma.
-- [ ] FIN abre el modal "FIN DEL JUEGO"; GUARDAR PUNTUACIÓN agrega una entrada a `av_scores` en `localStorage` y muestra "PUNTUACIÓN GUARDADA_".
-- [ ] "JUGAR DE NUEVO" reinicia puntuación, vidas y nivel (3 vidas, nivel 01, puntuación 0).
-- [ ] Iniciar sesión con el usuario "kai" guarda `av_user = {"name":"KAI"}`, redirige a `/` y la navbar muestra "KAI ▾".
-- [ ] "JUGAR COMO INVITADO" redirige a `/` sin sesión.
-- [ ] Recargar la página conserva la sesión sin warnings de hidratación en consola.
-- [ ] El Salón muestra 8 tabs, podio con 3 posiciones y 12 filas; la fila "TU MEJOR MARCA" solo aparece con sesión.
-- [ ] A 375 px de ancho la navbar muestra el botón hamburguesa y el panel móvil abre y cierra; no hay scroll horizontal.
-- [ ] El link activo de la navbar es "Biblioteca" en `/`, `/juegos/*` y su reproductor, y "Salón de la Fama" en `/salon`.
+- [x] `npm run lint` y `npm run build` terminan sin errores.
+- [x] Existen las rutas `/`, `/juegos/[id]`, `/juegos/[id]/jugar`, `/auth` y `/salon`, y cada una renderiza sin errores en la consola del navegador.
+- [x] `/juegos/no-existe` y `/juegos/no-existe/jugar` devuelven la página 404.
+- [x] La Biblioteca muestra 8 tarjetas; el chip "SHOOTER" deja exactamente 2 (INVASORES y ROCAS).
+- [x] Buscar "xyz" en la Biblioteca muestra "NO HAY RESULTADOS".
+- [x] Clic en una tarjeta o en su botón JUGAR lleva a `/juegos/<id>`; el botón "JUGAR AHORA" lleva a `/juegos/<id>/jugar`.
+- [x] Detalle muestra 10 filas de leaderboard y los valores `plays` y `best` del juego.
+- [x] En el Reproductor la puntuación aumenta sola, PAUSA la detiene y muestra "EN PAUSA", y REANUDAR la retoma.
+- [x] FIN abre el modal "FIN DEL JUEGO"; GUARDAR PUNTUACIÓN agrega una entrada a `av_scores` en `localStorage` y muestra "PUNTUACIÓN GUARDADA_".
+- [x] "JUGAR DE NUEVO" reinicia puntuación, vidas y nivel (3 vidas, nivel 01, puntuación 0).
+- [x] Iniciar sesión con el usuario "kai" guarda `av_user = {"name":"KAI"}`, redirige a `/` y la navbar muestra "KAI ▾".
+- [x] "JUGAR COMO INVITADO" redirige a `/` sin sesión.
+- [x] Recargar la página conserva la sesión sin warnings de hidratación en consola.
+- [x] El Salón muestra 8 tabs, podio con 3 posiciones y 12 filas; la fila "TU MEJOR MARCA" solo aparece con sesión.
+- [x] A 375 px de ancho la navbar muestra el botón hamburguesa y el panel móvil abre y cierra; no hay scroll horizontal.
+- [x] El link activo de la navbar es "Biblioteca" en `/`, `/juegos/*` y su reproductor, y "Salón de la Fama" en `/salon`.
 
 ---
 
