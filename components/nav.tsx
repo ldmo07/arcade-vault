@@ -10,7 +10,7 @@ export function Nav() {
   const { user, signOut } = useSession();
   const [open, setOpen] = useState(false);
 
-  const isLibrary = pathname === "/" || pathname.startsWith("/juegos");
+  const isLibrary = pathname.startsWith("/games") || pathname.startsWith("/juegos");
   const isHall = pathname.startsWith("/salon");
   const isAuth = pathname.startsWith("/auth");
   const close = () => setOpen(false);
@@ -34,7 +34,7 @@ export function Nav() {
           </div>
         </Link>
         <div className="links">
-          <Link href="/" className={isLibrary ? "active" : ""} aria-current={isLibrary ? "page" : undefined}>
+          <Link href="/games" className={isLibrary ? "active" : ""} aria-current={isLibrary ? "page" : undefined}>
             Biblioteca
           </Link>
           <Link href="/salon" className={isHall ? "active" : ""} aria-current={isHall ? "page" : undefined}>
@@ -70,7 +70,7 @@ export function Nav() {
       <div className={"av-mobile-backdrop" + (open ? " open" : "")} onClick={close} aria-hidden="true"></div>
       <aside id="av-mobile-panel" className={"av-mobile-panel" + (open ? " open" : "")} inert={!open} aria-label="Menú móvil">
         <div className="pixel neon-cyan" style={{ fontSize: 11, marginBottom: 16 }}>MENÚ</div>
-        <Link href="/" className={isLibrary ? "active" : ""} aria-current={isLibrary ? "page" : undefined} onClick={close}>
+        <Link href="/games" className={isLibrary ? "active" : ""} aria-current={isLibrary ? "page" : undefined} onClick={close}>
           Biblioteca
         </Link>
         <Link href="/salon" className={isHall ? "active" : ""} aria-current={isHall ? "page" : undefined} onClick={close}>
