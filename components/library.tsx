@@ -31,7 +31,6 @@ export function Library() {
         <div className="av-search">
           <span className="ico" aria-hidden="true">⌕</span>
           <input
-            type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Buscar un juego por nombre…"
