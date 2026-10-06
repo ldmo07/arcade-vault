@@ -10,7 +10,8 @@ export function Nav() {
   const { user, signOut } = useSession();
   const [open, setOpen] = useState(false);
 
-  const isLibrary = pathname.startsWith("/games") || pathname.startsWith("/juegos");
+  const isHome = pathname === "/";
+  const isLibrary =pathname.startsWith("/games") || pathname.startsWith("/juegos");
   const isHall = pathname.startsWith("/salon");
   const isAuth = pathname.startsWith("/auth");
   const close = () => setOpen(false);
@@ -27,19 +28,25 @@ export function Nav() {
   return (
     <>
       <nav className="av-nav" aria-label="Principal">
-        <Link className="logo" href="/" aria-label="Arcade Vault, ir a la biblioteca">
+        <Link className="logo" href="/" aria-label="Arcade Vault, ir al inicio">
           <div className="logo-mark" aria-hidden="true"></div>
           <div className="logo-text neon-cyan">
             ARCADE <span className="neon-magenta">VAULT</span>
           </div>
         </Link>
         <div className="links">
+          <Link href="/" className={isHome ? "active" : ""} aria-current={isHome ? "page" : undefined}>
+            Inicio
+          </Link>
           <Link href="/games" className={isLibrary ? "active" : ""} aria-current={isLibrary ? "page" : undefined}>
             Biblioteca
           </Link>
           <Link href="/salon" className={isHall ? "active" : ""} aria-current={isHall ? "page" : undefined}>
             Salón de la Fama
           </Link>
+          <a aria-disabled="true" title="Próximamente">
+            Acerca de
+          </a>
         </div>
         <div className="spacer"></div>
         <div className="coin-counter">
@@ -70,12 +77,18 @@ export function Nav() {
       <div className={"av-mobile-backdrop" + (open ? " open" : "")} onClick={close} aria-hidden="true"></div>
       <aside id="av-mobile-panel" className={"av-mobile-panel" + (open ? " open" : "")} inert={!open} aria-label="Menú móvil">
         <div className="pixel neon-cyan" style={{ fontSize: 11, marginBottom: 16 }}>MENÚ</div>
+        <Link href="/" className={isHome ? "active" : ""} aria-current={isHome ? "page" : undefined} onClick={close}>
+          Inicio
+        </Link>
         <Link href="/games" className={isLibrary ? "active" : ""} aria-current={isLibrary ? "page" : undefined} onClick={close}>
           Biblioteca
         </Link>
         <Link href="/salon" className={isHall ? "active" : ""} aria-current={isHall ? "page" : undefined} onClick={close}>
           Salón de la Fama
         </Link>
+        <a aria-disabled="true" title="Próximamente">
+          Acerca de
+        </a>
         <Link href="/auth" className={isAuth ? "active" : ""} aria-current={isAuth ? "page" : undefined} onClick={close}>
           {user ? "Cuenta" : "Iniciar Sesión"}
         </Link>

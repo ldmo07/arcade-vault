@@ -175,6 +175,9 @@ a { color: inherit; text-decoration: none; }
   transition: color 120ms;
 }
 .av-nav .links a:hover { color: var(--ink); }
+.av-nav .links a[aria-disabled="true"],
+.av-mobile-panel a[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
+.av-nav .links a[aria-disabled="true"]:hover { color: var(--ink-dim); }
 .av-nav .links a.active { color: var(--cyan); text-shadow: 0 0 8px rgba(0,245,255,0.65); }
 .av-nav .links a.active::after {
   content: "";
