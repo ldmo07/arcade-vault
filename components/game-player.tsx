@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AsteroidsCanvas } from "@/components/games/asteroids-canvas";
 import type { Game } from "@/lib/data";
 import { useSession } from "@/lib/session";
 
@@ -13,21 +14,30 @@ export function GamePlayer({ game }: { game: Game }) {
   const [over, setOver] = useState(false);
   const [typedName, setTypedName] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [engineLevel, setEngineLevel] = useState(1);
+  const [runId, setRunId] = useState(0);
+
+  const isAsteroids = game.id === "asteroides";
 
   // La sesión se lee tras la hidratación; el nombre escrito en el modal tiene prioridad.
   const name = typedName ?? user?.name ?? "INVITADO";
-  // El nivel sube cada 2.500 puntos (derivado de la puntuación, sin efecto extra).
-  const level = 1 + Math.floor(score / 2500);
+  // Juegos simulados: el nivel sube cada 2.500 puntos. Asteroides usa el nivel real del motor.
+  const level = isAsteroids ? engineLevel : 1 + Math.floor(score / 2500);
 
   useEffect(() => {
-    if (over || paused) return;
-    const t = setInterval(() => setScore((s) => s + Math.floor(10 + Math.random() * 90)), 220);
+    if (isAsteroids || over || paused) return;
+    const t = setInterval(
+      () => setScore((s) => s + Math.floor(10 + Math.random() * 90)),
+      220,
+    );
     return () => clearInterval(t);
-  }, [over, paused]);
+  }, [isAsteroids, over, paused]);
 
   const restart = () => {
     setScore(0);
     setLives(3);
+    setEngineLevel(1);
+    setRunId((id) => id + 1);
     setPaused(false);
     setOver(false);
     setSaved(false);
@@ -39,7 +49,9 @@ export function GamePlayer({ game }: { game: Game }) {
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
           <div className="hud-stat">
             <div className="l">Jugador</div>
-            <div className="v" style={{ color: "var(--ink)" }}>{name}</div>
+            <div className="v" style={{ color: "var(--ink)" }}>
+              {name}
+            </div>
           </div>
           <div className="hud-stat">
             <div className="l">Puntuación</div>
@@ -47,7 +59,9 @@ export function GamePlayer({ game }: { game: Game }) {
           </div>
           <div className="hud-stat lives">
             <div className="l">Vidas</div>
-            <div className="v" aria-label={`${lives} vidas`}>{"♥ ".repeat(lives).trim() || "—"}</div>
+            <div className="v" aria-label={`${lives} vidas`}>
+              {"♥ ".repeat(lives).trim() || "—"}
+            </div>
           </div>
           <div className="hud-stat level">
             <div className="l">Nivel</div>
@@ -55,10 +69,18 @@ export function GamePlayer({ game }: { game: Game }) {
           </div>
         </div>
         <div className="hud-actions">
-          <button type="button" className="btn yellow" onClick={() => setPaused((p) => !p)}>
+          <button
+            type="button"
+            className="btn yellow"
+            onClick={() => setPaused((p) => !p)}
+          >
             {paused ? "REANUDAR" : "PAUSA"}
           </button>
-          <button type="button" className="btn magenta" onClick={() => setOver(true)}>
+          <button
+            type="button"
+            className="btn magenta"
+            onClick={() => setOver(true)}
+          >
             FIN
           </button>
           <Link className="btn ghost" href={`/juegos/${game.id}`}>
@@ -69,18 +91,42 @@ export function GamePlayer({ game }: { game: Game }) {
 
       <div className="crt">
         <div className="crt-screen">
-          <div className="game-arena">
-            <div className="grid-floor"></div>
-            <div className="enemy e1"></div>
-            <div className="enemy e2"></div>
-            <div className="enemy e3"></div>
-            <div className="player-ship"></div>
-          </div>
+          {isAsteroids ? (
+            <AsteroidsCanvas
+              key={runId}
+              paused={paused || over}
+              onScore={setScore}
+              onLives={setLives}
+              onLevel={setEngineLevel}
+              onGameOver={() => setOver(true)}
+            />
+          ) : (
+            <div className="game-arena">
+              <div className="grid-floor"></div>
+              <div className="enemy e1"></div>
+              <div className="enemy e2"></div>
+              <div className="enemy e3"></div>
+              <div className="player-ship"></div>
+            </div>
+          )}
           {paused && (
-            <div className="crt-content" style={{ background: "rgba(0,0,0,0.6)", zIndex: 5 }}>
+            <div
+              className="crt-content"
+              style={{ background: "rgba(0,0,0,0.6)", zIndex: 5 }}
+            >
               <div>
-                <div className="pixel neon-yellow" style={{ fontSize: 22 }}>EN PAUSA</div>
-                <div className="mono" style={{ fontSize: 11, color: "var(--ink-dim)", marginTop: 10, letterSpacing: "0.16em" }}>
+                <div className="pixel neon-yellow" style={{ fontSize: 22 }}>
+                  EN PAUSA
+                </div>
+                <div
+                  className="mono"
+                  style={{
+                    fontSize: 11,
+                    color: "var(--ink-dim)",
+                    marginTop: 10,
+                    letterSpacing: "0.16em",
+                  }}
+                >
                   PULSA REANUDAR PARA CONTINUAR
                 </div>
               </div>
@@ -96,7 +142,12 @@ export function GamePlayer({ game }: { game: Game }) {
 
       {over && (
         <div className="modal-bd">
-          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="game-over-title">
+          <div
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="game-over-title"
+          >
             <h2 id="game-over-title">FIN DEL JUEGO</h2>
             <div className="final-label">PUNTUACIÓN FINAL</div>
             <div className="final">{score.toLocaleString("es-ES")}</div>
@@ -104,7 +155,9 @@ export function GamePlayer({ game }: { game: Game }) {
               <div className="input-row">
                 <input
                   value={name}
-                  onChange={(e) => setTypedName(e.target.value.toUpperCase().slice(0, 10))}
+                  onChange={(e) =>
+                    setTypedName(e.target.value.toUpperCase().slice(0, 10))
+                  }
                   placeholder="TUS INICIALES"
                   aria-label="Tus iniciales"
                 />
@@ -120,7 +173,9 @@ export function GamePlayer({ game }: { game: Game }) {
                 </button>
               </div>
             ) : (
-              <div className="toast-saved" role="status">▸ PUNTUACIÓN GUARDADA_</div>
+              <div className="toast-saved" role="status">
+                ▸ PUNTUACIÓN GUARDADA_
+              </div>
             )}
             <div className="actions">
               <button type="button" className="btn" onClick={restart}>
