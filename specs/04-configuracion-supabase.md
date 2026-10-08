@@ -1,6 +1,6 @@
 # SPEC 04 — Configuración de Supabase en Next.js
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** Ninguna
 > **Date:** 2026-10-08
 > **Objective:** Integrar Supabase en la app (SDK, clientes de navegador y servidor tipados, proxy de sesión y variables de entorno) contra el proyecto remoto, verificable con un endpoint de salud, sin añadir auth ni tablas.

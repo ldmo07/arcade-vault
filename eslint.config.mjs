@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Código de referencia (plantillas y juegos de ejemplo), no es parte de la app.
+    "references/**",
   ]),
 ]);
 
