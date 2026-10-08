@@ -13,6 +13,7 @@ export function Nav() {
   const isHome = pathname === "/";
   const isLibrary =pathname.startsWith("/games") || pathname.startsWith("/juegos");
   const isHall = pathname.startsWith("/salon");
+  const isAbout = pathname.startsWith("/about");
   const isAuth = pathname.startsWith("/auth");
   const close = () => setOpen(false);
 
@@ -44,9 +45,9 @@ export function Nav() {
           <Link href="/salon" className={isHall ? "active" : ""} aria-current={isHall ? "page" : undefined}>
             Salón de la Fama
           </Link>
-          <a aria-disabled="true" title="Próximamente">
+          <Link href="/about" className={isAbout ? "active" : ""} aria-current={isAbout ? "page" : undefined}>
             Acerca de
-          </a>
+          </Link>
         </div>
         <div className="spacer"></div>
         <div className="coin-counter">
@@ -86,9 +87,9 @@ export function Nav() {
         <Link href="/salon" className={isHall ? "active" : ""} aria-current={isHall ? "page" : undefined} onClick={close}>
           Salón de la Fama
         </Link>
-        <a aria-disabled="true" title="Próximamente">
+        <Link href="/about" className={isAbout ? "active" : ""} aria-current={isAbout ? "page" : undefined} onClick={close}>
           Acerca de
-        </a>
+        </Link>
         <Link href="/auth" className={isAuth ? "active" : ""} aria-current={isAuth ? "page" : undefined} onClick={close}>
           {user ? "Cuenta" : "Iniciar Sesión"}
         </Link>
