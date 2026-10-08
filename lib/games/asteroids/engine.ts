@@ -19,7 +19,13 @@ import type { AsteroidsCallbacks, AsteroidsHandle } from "./types";
 
 type State = "playing" | "dead" | "gameover";
 
-const GAME_KEYS = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "Space"]);
+const GAME_KEYS = new Set([
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowUp",
+  "ArrowDown",
+  "Space",
+]);
 
 function isTextTarget(target: EventTarget | null) {
   const tag = (target as HTMLElement | null)?.tagName;
@@ -247,7 +253,9 @@ export function createAsteroids(
   };
 
   const onKeyUp = (e: KeyboardEvent) => {
-    if (paused || state === "gameover") return;
+    if (paused || state === "gameover" || isTextTarget(e.target)) return;
+    // Espacio activa el botón enfocado al soltarlo; se cancela mientras se juega
+    if (GAME_KEYS.has(e.code)) e.preventDefault();
     keys[e.code] = false;
   };
 

@@ -1,6 +1,6 @@
 # SPEC 05 — Juego Asteroides en canvas dentro de la plataforma
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** SPEC 01
 > **Date:** 2026-10-08
 > **Objective:** Portar el juego `references/started-games/02-asteroids` a un motor TypeScript sin dependencias del DOM y montarlo en un canvas dentro del `GamePlayer` de `/juegos/asteroides/jugar`, de modo que el contenedor React controle la pausa y reciba por callbacks puntos, vidas, nivel y fin de partida.
@@ -25,7 +25,7 @@ Hoy `GamePlayer` simula una partida (puntos aleatorios cada 220 ms y una arena d
 - Callbacks del canvas hacia React: `onScore`, `onLives`, `onLevel`, `onGameOver`. El HUD (`Puntuación`, `Vidas`, `Nivel`) de `GamePlayer` muestra esos valores en vez de los simulados cuando el juego es `asteroides`.
 - Al quedarse sin vidas el motor llama `onGameOver(score)` una sola vez y `GamePlayer` abre el modal existente; "GUARDAR PUNTUACIÓN" usa el `saveScore` mock de `lib/session.tsx`.
 - "JUGAR DE NUEVO" reinicia la partida completa (nuevo motor); "FIN" detiene el juego y abre el modal con la puntuación actual.
-- Controles del original: `←` `→` rotar, `↑` propulsar, `Espacio` disparar. Se hace `preventDefault` de esas teclas mientras el juego está activo para evitar el scroll de la página.
+- Controles del original: `←` `→` rotar, `↑` propulsar, `Espacio` disparar. Se hace `preventDefault` (en `keydown` y `keyup`) de esas teclas y de `↓` mientras el juego está activo, para evitar el scroll de la página y que `Espacio` active el botón enfocado. `↓` no tiene efecto en la nave.
 - Aspecto visual original: trazos blancos sobre negro, powerup cian, llama naranja. Sin recolorear.
 
 **Fuera de alcance (para futuras specs):**
@@ -110,25 +110,25 @@ Antes de empezar: leer `node_modules/next/dist/docs/01-app` (Client Components) 
 
 ## Criterios de aceptación
 
-- [ ] `npm run lint` y `npm run build` terminan sin errores.
-- [ ] `/juegos/asteroides/jugar` muestra el canvas con la nave en el centro, 4 asteroides grandes y sin errores en la consola.
-- [ ] `←` y `→` rotan la nave, `↑` la propulsa y `Espacio` dispara; pulsarlas no hace scroll en la página.
-- [ ] Nave, asteroides, balas y partículas atraviesan un borde y reaparecen por el opuesto.
-- [ ] Destruir un asteroide grande suma exactamente 20, uno mediano 50 y uno pequeño 100, y el HUD de React muestra el total.
-- [ ] Un asteroide grande se divide en 2 medianos y uno mediano en 2 pequeños; uno pequeño desaparece sin dividirse.
-- [ ] Chocar con un asteroide sin invencibilidad resta una vida, el HUD de React lo refleja y la nave reaparece en el centro tras 2 s parpadeando durante 3 s de invencibilidad.
-- [ ] Al limpiar todos los asteroides el nivel sube en 1, el HUD muestra el nuevo nivel y aparecen `3 + nivel` asteroides.
-- [ ] Recoger el powerup `3x` activa disparo triple durante 5 s y el canvas muestra el contador `3x N.Ns`.
-- [ ] Pulsar PAUSA congela asteroides, balas y nave, aparece "EN PAUSA", y las teclas pulsadas durante la pausa no tienen efecto.
-- [ ] Pulsar REANUDAR continúa desde el mismo estado, sin salto de movimiento ni disparo pendiente.
-- [ ] Al llegar a 0 vidas se abre el modal "FIN DEL JUEGO" con la puntuación del HUD y `onGameOver` se invoca una sola vez.
-- [ ] Con el modal abierto, escribir espacios o flechas en el campo de iniciales no mueve ni dispara la nave.
-- [ ] "GUARDAR PUNTUACIÓN" guarda con `saveScore({ game: "asteroides", score, name })` y muestra "PUNTUACIÓN GUARDADA_".
-- [ ] "JUGAR DE NUEVO" arranca una partida con 0 puntos, 3 vidas, nivel 1 y sin duplicar listeners ni bucles (la velocidad del juego no cambia tras reiniciar).
-- [ ] Pulsar FIN abre el modal con la puntuación actual y la nave deja de responder al teclado.
-- [ ] Al salir con SALIR o navegar a otra ruta se cancelan el `requestAnimationFrame` y los listeners de teclado (el teclado de otras páginas funciona con normalidad).
-- [ ] `/juegos/caida/jugar` y los demás juegos siguen mostrando la arena simulada y el HUD aleatorio de antes.
-- [ ] `lib/games/asteroids/` no referencia `document` ni `window` fuera de `addEventListener`/`requestAnimationFrame`/`performance` y no importa React.
+- [x] `npm run lint` y `npm run build` terminan sin errores.
+- [x] `/juegos/asteroides/jugar` muestra el canvas con la nave en el centro, 4 asteroides grandes y sin errores en la consola.
+- [x] `←` y `→` rotan la nave, `↑` la propulsa y `Espacio` dispara; pulsarlas, y también `↓`, no hace scroll en la página ni activa el botón enfocado.
+- [x] Nave, asteroides, balas y partículas atraviesan un borde y reaparecen por el opuesto.
+- [x] Destruir un asteroide grande suma exactamente 20, uno mediano 50 y uno pequeño 100, y el HUD de React muestra el total.
+- [x] Un asteroide grande se divide en 2 medianos y uno mediano en 2 pequeños; uno pequeño desaparece sin dividirse.
+- [x] Chocar con un asteroide sin invencibilidad resta una vida, el HUD de React lo refleja y la nave reaparece en el centro tras 2 s parpadeando durante 3 s de invencibilidad.
+- [x] Al limpiar todos los asteroides el nivel sube en 1, el HUD muestra el nuevo nivel y aparecen `3 + nivel` asteroides.
+- [x] Recoger el powerup `3x` activa disparo triple durante 5 s y el canvas muestra el contador `3x N.Ns`.
+- [x] Pulsar PAUSA congela asteroides, balas y nave, aparece "EN PAUSA", y las teclas pulsadas durante la pausa no tienen efecto.
+- [x] Pulsar REANUDAR continúa desde el mismo estado, sin salto de movimiento ni disparo pendiente.
+- [x] Al llegar a 0 vidas se abre el modal "FIN DEL JUEGO" con la puntuación del HUD y `onGameOver` se invoca una sola vez.
+- [x] Con el modal abierto, escribir espacios o flechas en el campo de iniciales no mueve ni dispara la nave.
+- [x] "GUARDAR PUNTUACIÓN" guarda con `saveScore({ game: "asteroides", score, name })` y muestra "PUNTUACIÓN GUARDADA_".
+- [x] "JUGAR DE NUEVO" arranca una partida con 0 puntos, 3 vidas, nivel 1 y sin duplicar listeners ni bucles (la velocidad del juego no cambia tras reiniciar).
+- [x] Pulsar FIN abre el modal con la puntuación actual y la nave deja de responder al teclado.
+- [x] Al salir con SALIR o navegar a otra ruta se cancelan el `requestAnimationFrame` y los listeners de teclado (el teclado de otras páginas funciona con normalidad).
+- [x] `/juegos/caida/jugar` y los demás juegos siguen mostrando la arena simulada y el HUD aleatorio de antes.
+- [x] `lib/games/asteroids/` no referencia `document` ni `window` fuera de `addEventListener`/`requestAnimationFrame`/`performance` y no importa React.
 
 ---
 
