@@ -47,3 +47,4 @@ next-env.d.ts
 
 !.playwright-screenshots/.gitkeep
 !.playwright-mcp/.gitkeep
+.dev.log

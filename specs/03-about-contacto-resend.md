@@ -96,18 +96,18 @@ Antes de empezar: leer `node_modules/next/dist/docs/01-app` (Server Actions, for
 ## Criterios de aceptación
 
 - [ ] `npm run lint` y `npm run build` terminan sin errores.
-- [ ] `/about` renderiza el hero, 3 highlights con icono, el divisor de 24 píxeles y el formulario, sin errores en la consola.
-- [ ] La navbar y el panel móvil muestran "Acerca de" como enlace a `/about`, activo solo en `/about`, sin `aria-disabled`.
-- [ ] Enviar el formulario con algún campo vacío no llama a la acción y aplica la clase `shake` durante 400 ms.
+- [x] `/about` renderiza el hero, 3 highlights con icono, el divisor de 24 píxeles y el formulario, sin errores en la consola.
+- [x] La navbar y el panel móvil muestran "Acerca de" como enlace a `/about`, activo solo en `/about`, sin `aria-disabled`.
+- [x] Enviar el formulario con algún campo vacío no llama a la acción y aplica la clase `shake` durante 400 ms.
 - [ ] Con datos válidos y `RESEND_API_KEY` configurada, llega un correo a `CONTACT_TO_EMAIL` con asunto `[Arcade Vault] Mensaje de {name}`, el mensaje y `reply-to` igual al correo del remitente.
-- [ ] Tras un envío correcto se muestra el terminal con `MENSAJE RECIBIDO. TE RESPONDEREMOS PRONTO. GRACIAS, {NOMBRE}.` en mayúsculas.
-- [ ] "ENVIAR OTRO MENSAJE" limpia el formulario y vuelve a mostrar los campos.
+- [x] Tras un envío correcto se muestra el terminal con `MENSAJE RECIBIDO. TE RESPONDEREMOS PRONTO. GRACIAS, {NOMBRE}.` en mayúsculas.
+- [x] "ENVIAR OTRO MENSAJE" limpia el formulario y vuelve a mostrar los campos.
 - [ ] Sin `RESEND_API_KEY` (o si Resend falla) el formulario conserva lo escrito y muestra un mensaje de error visible; no se muestra el terminal de éxito.
-- [ ] La acción rechaza en servidor un correo con formato inválido, un mensaje de más de 2000 caracteres y un nombre vacío, devolviendo `{ ok: false, error: "validation" }`.
-- [ ] Con el campo honeypot `website` relleno no se envía ningún correo.
+- [x] La acción rechaza en servidor un correo con formato inválido, un mensaje de más de 2000 caracteres y un nombre vacío, devolviendo `{ ok: false, error: "validation" }`.
+- [x] Con el campo honeypot `website` relleno no se envía ningún correo.
 - [ ] El texto del usuario se escapa en el HTML del correo (`<script>` llega como texto).
-- [ ] La clave `RESEND_API_KEY` no aparece en el bundle del cliente ni en el repositorio; `.env.example` sí existe.
-- [ ] Con `prefers-reduced-motion: reduce` el divisor y el caret no se animan y las secciones se ven completas.
+- [x] La clave `RESEND_API_KEY` no aparece en el bundle del cliente ni en el repositorio; `.env.example` sí existe.
+- [x] Con `prefers-reduced-motion: reduce` el divisor y el caret no se animan y las secciones se ven completas.
 - [ ] A 375 px de ancho no hay scroll horizontal en `/about` y el formulario ocupa una columna.
 
 ---
