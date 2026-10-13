@@ -1,19 +1,8 @@
 // Solo servidor: usa el cliente de servidor de Supabase (cookies). No importar desde componentes cliente.
-import type { Category, GameColor } from "@/lib/data";
+import type { Category, GameColor, GameRow } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
-export interface GameRow {
-  id: string;
-  title: string;
-  short: string;
-  long: string;
-  cat: Category;
-  cover: string;
-  color: GameColor;
-  playable: boolean;
-  best: number;
-  plays: number;
-}
+export type { GameRow };
 
 export interface ScoreEntry {
   rank: number;

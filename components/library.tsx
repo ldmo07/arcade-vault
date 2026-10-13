@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CATS } from "@/lib/data";
-import type { GameRow } from "@/lib/games-repo";
+import { CATS, type GameRow } from "@/lib/data";
 import { GameCard } from "@/components/game-card";
 
 export function Library({ games }: { games: GameRow[] }) {

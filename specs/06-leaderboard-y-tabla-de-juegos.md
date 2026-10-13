@@ -1,6 +1,6 @@
 # SPEC 06 — Tabla `games` y leaderboard real en Supabase
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** SPEC 01, SPEC 04, SPEC 05
 > **Date:** 2026-10-13
 > **Objective:** Integrar la app con Supabase (proyecto `jnkfrkejprbppolsspld`) creando en él las tablas `games` y `scores` (con RLS), migrar el catálogo de `lib/data.ts` a la tabla `games`, guardar las puntuaciones reales desde el modal de fin de partida y mostrar el top 10 por juego en `/salon` y en el detalle `/juegos/[id]`.
@@ -176,27 +176,27 @@ Antes de empezar: leer `node_modules/next/dist/docs/01-app` (Server Actions, dat
 - [x] Las filas guardadas desde la app se ven en la BD remota (`execute_sql` sobre `public.scores`) y en el dashboard de Supabase.
 - [x] En el proyecto remoto existen `games` (8 filas), `scores` (vacía de partida) y la vista `game_stats`, con RLS activado en `games` y `scores`.
 - [x] `get_advisors` (seguridad) no reporta tablas sin RLS ni vistas `security definer`.
-- [ ] Con la clave publishable se puede `select` en `games`, `scores` y `game_stats`, e `insert` en `scores`; `update` y `delete` sobre `scores` son rechazados.
+- [x] Con la clave publishable se puede `select` en `games`, `scores` y `game_stats`, e `insert` en `scores`; `update` y `delete` sobre `scores` son rechazados.
 - [x] Un `insert` en `scores` con `score < 0`, `name` vacío, `name` de más de 12 caracteres o `game_id` inexistente es rechazado por la BD.
-- [ ] `/`, `/games`, `/juegos/[id]` y `/juegos/[id]/jugar` muestran el catálogo leído de `games` con títulos, categorías, portadas y colores idénticos a los actuales.
-- [ ] `/games` lista exactamente los juegos de la tabla `games` (hoy 8, ordenados por `sort_order`), con el filtro por categoría funcionando; añadir una fila en `games` (MCP `execute_sql`) hace que aparezca en `/games` sin tocar código.
+- [x] `/`, `/games`, `/juegos/[id]` y `/juegos/[id]/jugar` muestran el catálogo leído de `games` con títulos, categorías, portadas y colores idénticos a los actuales.
+- [x] `/games` lista exactamente los juegos de la tabla `games` (hoy 8, ordenados por `sort_order`), con el filtro por categoría funcionando; añadir una fila en `games` (MCP `execute_sql`) hace que aparezca en `/games` sin tocar código.
 - [x] Sin sesión iniciada se puede jugar Asteroides y guardar el score; la fila queda con `user_id = null`.
 - [x] Un `insert` en `scores` con un `user_id` distinto de `auth.uid()` es rechazado por RLS.
 - [x] Un id inexistente en `/juegos/[id]` y `/juegos/[id]/jugar` devuelve 404.
 - [x] Sin partidas guardadas, `best` y `plays` se muestran como `0` en tarjetas y detalle.
 - [x] Terminar una partida de Asteroides y pulsar "GUARDAR PUNTUACIÓN" con nombre `abc` inserta una fila en `scores` con `game_id = 'asteroides'`, `name = 'ABC'` y la puntuación del HUD, y el botón muestra `PUNTUACIÓN GUARDADA_`.
-- [ ] Mientras guarda, el botón muestra `GUARDANDO…` y no se puede pulsar dos veces; tras guardar no se puede insertar un segundo score desde el mismo modal.
+- [x] Mientras guarda, el botón muestra `GUARDANDO…` y no se puede pulsar dos veces; tras guardar no se puede insertar un segundo score desde el mismo modal.
 - [x] Si `submitScore` falla (p. ej. variables de entorno inválidas), el modal muestra `ERROR, REINTENTAR`, sigue abierto y un nuevo intento funciona al restablecer la conexión.
 - [x] `/salon` lista una pestaña por juego en el orden de `sort_order`; al seleccionar un juego sin scores muestra "SIN PUNTUACIONES AÚN".
 - [x] El score recién guardado aparece en `/salon` (pestaña Asteroides) sin reiniciar el servidor.
-- [ ] `/salon` muestra como máximo 10 filas ordenadas por puntuación descendente; empates se ordenan por antigüedad.
+- [x] `/salon` muestra como máximo 10 filas ordenadas por puntuación descendente; empates se ordenan por antigüedad.
 - [x] `best` de Asteroides en el catálogo pasa a ser el máximo guardado y `plays` el número de scores.
 - [x] `GamePlayer` ya no escribe en `localStorage` bajo `av_scores`.
 - [x] `/juegos/[id]` muestra en "MEJORES PUNTUACIONES" las filas de `scores` de ese juego (máximo 10, por puntuación descendente y empate por antigüedad), distintas para cada juego.
 - [x] Un juego sin scores muestra "SIN PUNTUACIONES AÚN" en `/juegos/[id]`.
 - [x] Un score recién guardado aparece en `/juegos/[id]` del mismo juego sin reiniciar el servidor, y no en los demás.
 - [x] `seededScores` ya no existe en el código.
-- [ ] Ningún componente cliente importa `lib/supabase/server.ts` ni `lib/games-repo.ts`.
+- [x] Ningún componente cliente importa `lib/supabase/server.ts` ni `lib/games-repo.ts`.
 
 ---
 

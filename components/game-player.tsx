@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { submitScore } from "@/app/juegos/[id]/jugar/actions";
 import { AsteroidsCanvas } from "@/components/games/asteroids-canvas";
-import type { GameRow } from "@/lib/games-repo";
+import type { GameRow } from "@/lib/data";
 import { useSession } from "@/lib/session";
 
 export function GamePlayer({ game }: { game: GameRow }) {

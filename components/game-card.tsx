@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef } from "react";
-import type { GameRow } from "@/lib/games-repo";
+import type { GameRow } from "@/lib/data";
 
 export function GameCard({ game }: { game: GameRow }) {
   const ref = useRef<HTMLAnchorElement>(null);

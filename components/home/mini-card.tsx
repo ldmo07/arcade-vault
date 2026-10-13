@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { GameRow } from "@/lib/games-repo";
+import type { GameRow } from "@/lib/data";
 
 export function MiniCard({ game }: { game: GameRow }) {
   return (
