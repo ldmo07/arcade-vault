@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useRef } from "react";
-import type { Game } from "@/lib/data";
+import type { GameRow } from "@/lib/data";
 
-export function GameCard({ game }: { game: Game }) {
+export function GameCard({ game }: { game: GameRow }) {
   const ref = useRef<HTMLAnchorElement>(null);
 
   const onMove = (e: React.MouseEvent<HTMLAnchorElement>) => {

@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { GamePlayer } from "@/components/game-player";
-import { GAMES } from "@/lib/data";
-
-export function generateStaticParams() {
-  return GAMES.map((g) => ({ id: g.id }));
-}
+import { getGame } from "@/lib/games-repo";
 
 export async function generateMetadata(props: PageProps<"/juegos/[id]/jugar">): Promise<Metadata> {
   const { id } = await props.params;
-  const game = GAMES.find((g) => g.id === id);
+  const game = await getGame(id);
   return game ? { title: `Jugando ${game.title}` } : {};
 }
 
 export default async function PlayPage(props: PageProps<"/juegos/[id]/jugar">) {
   const { id } = await props.params;
-  const game = GAMES.find((g) => g.id === id);
+  const game = await getGame(id);
   if (!game) notFound();
 
   return <GamePlayer game={game} />;

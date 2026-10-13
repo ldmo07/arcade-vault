@@ -14,10 +14,94 @@ export type Database = {
   };
   public: {
     Tables: {
-      [_ in never]: never;
+      games: {
+        Row: {
+          cat: string;
+          color: string;
+          cover: string;
+          id: string;
+          long: string;
+          playable: boolean;
+          short: string;
+          sort_order: number;
+          title: string;
+        };
+        Insert: {
+          cat: string;
+          color: string;
+          cover: string;
+          id: string;
+          long: string;
+          playable?: boolean;
+          short: string;
+          sort_order: number;
+          title: string;
+        };
+        Update: {
+          cat?: string;
+          color?: string;
+          cover?: string;
+          id?: string;
+          long?: string;
+          playable?: boolean;
+          short?: string;
+          sort_order?: number;
+          title?: string;
+        };
+        Relationships: [];
+      };
+      scores: {
+        Row: {
+          created_at: string;
+          game_id: string;
+          id: number;
+          name: string;
+          score: number;
+          user_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          game_id: string;
+          id?: never;
+          name: string;
+          score: number;
+          user_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          game_id?: string;
+          id?: never;
+          name?: string;
+          score?: number;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "scores_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "game_stats";
+            referencedColumns: ["game_id"];
+          },
+          {
+            foreignKeyName: "scores_game_id_fkey";
+            columns: ["game_id"];
+            isOneToOne: false;
+            referencedRelation: "games";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
-      [_ in never]: never;
+      game_stats: {
+        Row: {
+          best: number | null;
+          game_id: string | null;
+          plays: number | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       [_ in never]: never;

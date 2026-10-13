@@ -16,6 +16,8 @@ Next.js 16.3 (App Router, `app/` at repo root, no `src/`), React 19, TypeScript 
 
 Supabase (`@supabase/supabase-js` + `@supabase/ssr`) contra el proyecto remoto `jnkfrkejprbppolsspld`. Clientes tipados con `Database` en `lib/supabase/`: `client.ts` (navegador), `server.ts` (servidor, nunca desde componentes cliente), `proxy.ts` (`updateSession`) y `database.types.ts` (generado, no se edita a mano). `proxy.ts` en la raíz refresca la sesión. Variables: `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (ver `.env.example`). Health check: `GET /api/health/supabase`.
 
+Datos en Supabase (esquema `public`, RLS activado, migración en `supabase/migrations/`): `games` (catálogo; ya no existe `GAMES` en `lib/data.ts`), `scores` (`user_id` nullable: se juega y se guarda sin autenticación) y la vista `game_stats` (`best` y `plays` calculados). Las lecturas pasan por `lib/games-repo.ts` (`getGames`, `getGame`, `getTopScores`; solo servidor) y la escritura por la Server Action `submitScore` en `app/juegos/[id]/jugar/actions.ts`. `/salon` muestra el top 10 por juego con `?juego=<id>`.
+
 Next 16 has breaking changes vs. older versions (e.g. `LayoutProps<"/">` global helper types used in `app/layout.tsx`). Consult `node_modules/next/dist/docs/` (`01-app` for App Router) before writing Next-specific code.
 
 ## skills

@@ -3,7 +3,7 @@ import { FeatureIcon } from "@/components/home/feature-icon";
 import { MiniCard } from "@/components/home/mini-card";
 import { Silhouettes } from "@/components/home/silhouettes";
 import { Reveal } from "@/components/reveal";
-import { GAMES } from "@/lib/data";
+import { getGames } from "@/lib/games-repo";
 import { FEATURES, HOME_STATS, RECENT_SCORES, TOP_PLAYERS } from "@/lib/home-data";
 
 function SectionHead({ kicker, color, title }: { kicker: string; color: string; title: string }) {
@@ -16,7 +16,9 @@ function SectionHead({ kicker, color, title }: { kicker: string; color: string; 
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const games = await getGames();
+
   return (
     <div className="home fade-in">
       {/* HERO */}
@@ -69,7 +71,7 @@ export default function Home() {
       <Reveal className="home-section">
         <SectionHead kicker="// 02" color="cyan" title="JUEGOS DISPONIBLES AHORA" />
         <div className="mini-rail">
-          {GAMES.slice(0, 6).map((g) => (
+          {games.slice(0, 6).map((g) => (
             <MiniCard key={g.id} game={g} />
           ))}
         </div>

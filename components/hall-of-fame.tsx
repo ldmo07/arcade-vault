@@ -1,96 +1,128 @@
-"use client";
-
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { GAMES, seededScores } from "@/lib/data";
-import { useSession } from "@/lib/session";
+import type { GameRow, ScoreEntry } from "@/lib/games-repo";
 
 const fmt = (n: number) => n.toLocaleString("es-ES");
 
-export function HallOfFame() {
-  const { user } = useSession();
-  const [tab, setTab] = useState(GAMES[0].id);
-  const rows = useMemo(() => seededScores(tab.length * 23 + 7, 12), [tab]);
-  const game = GAMES.find((g) => g.id === tab) ?? GAMES[0];
-  const youRank = user ? Math.floor(8 + (tab.length % 4)) : null;
-  const youScore = user ? rows[5].score - 2400 : null;
+function PodiumSlot({
+  entry,
+  place,
+  className,
+}: {
+  entry: ScoreEntry | undefined;
+  place: 1 | 2 | 3;
+  className: "gold" | "silver" | "bronze";
+}) {
+  const champion = place === 1;
+  return (
+    <div className={`podium-slot ${className}`}>
+      {champion && (
+        <div
+          className="pixel"
+          style={{ fontSize: 9, color: "var(--gold)", letterSpacing: "0.18em" }}
+        >
+          CAMPEÓN
+        </div>
+      )}
+      <div
+        className="rank-num"
+        style={champion ? { fontSize: 36, marginTop: 4 } : undefined}
+      >
+        {String(place).padStart(2, "0")}
+      </div>
+      <div className="name">{entry?.name ?? "—"}</div>
+      <div className="score" style={champion ? { fontSize: 20 } : undefined}>
+        {entry ? fmt(entry.score) : "—"}
+      </div>
+      <div className="date">{entry?.date ?? ""}</div>
+    </div>
+  );
+}
 
+export function HallOfFame({
+  games,
+  selected,
+  rows,
+}: {
+  games: GameRow[];
+  selected: GameRow;
+  rows: ScoreEntry[];
+}) {
   return (
     <div className="av-hall fade-in">
       <div className="hall-head">
         <h1>SALÓN DE LA FAMA</h1>
-        <p className="pixel" style={{ fontSize: 10 }}>LOS NOMBRES QUE NUNCA SE BORRAN DE LA PANTALLA</p>
+        <p className="pixel" style={{ fontSize: 10 }}>
+          LOS NOMBRES QUE NUNCA SE BORRAN DE LA PANTALLA
+        </p>
       </div>
 
-      <div className="hall-tabs" role="group" aria-label="Elegir juego">
-        {GAMES.map((g) => (
-          <button
+      <nav className="hall-tabs" aria-label="Elegir juego">
+        {games.map((g) => (
+          <Link
             key={g.id}
-            type="button"
-            className={"chip" + (tab === g.id ? " active" : "")}
-            aria-pressed={tab === g.id}
-            onClick={() => setTab(g.id)}
+            href={`/salon?juego=${g.id}`}
+            className={"chip" + (selected.id === g.id ? " active" : "")}
+            aria-current={selected.id === g.id ? "page" : undefined}
+            scroll={false}
           >
             {g.title}
-          </button>
+          </Link>
         ))}
-      </div>
+      </nav>
 
-      <div className="podium">
-        <div className="podium-slot silver">
-          <div className="rank-num">02</div>
-          <div className="name">{rows[1].name}</div>
-          <div className="score">{fmt(rows[1].score)}</div>
-          <div className="date">{rows[1].date}</div>
-        </div>
-        <div className="podium-slot gold">
-          <div className="pixel" style={{ fontSize: 9, color: "var(--gold)", letterSpacing: "0.18em" }}>CAMPEÓN</div>
-          <div className="rank-num" style={{ fontSize: 36, marginTop: 4 }}>01</div>
-          <div className="name">{rows[0].name}</div>
-          <div className="score" style={{ fontSize: 20 }}>{fmt(rows[0].score)}</div>
-          <div className="date">{rows[0].date}</div>
-        </div>
-        <div className="podium-slot bronze">
-          <div className="rank-num">03</div>
-          <div className="name">{rows[2].name}</div>
-          <div className="score">{fmt(rows[2].score)}</div>
-          <div className="date">{rows[2].date}</div>
-        </div>
-      </div>
-
-      <div className="hall-table">
-        <div className="th">
-          <div>RANGO</div>
-          <div>JUGADOR</div>
-          <div>PUNTUACIÓN</div>
-          <div>FECHA</div>
-        </div>
-        {rows.map((r, i) => (
-          <div
-            key={r.name + i}
-            className={"tr" + (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")}
-            style={{ animationDelay: `${i * 50}ms` }}
-          >
-            <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
-            <div className="pl">{r.name}</div>
-            <div className="sc">{fmt(r.score)}</div>
-            <div className="dt">{r.date}</div>
+      {rows.length === 0 ? (
+        <div className="hall-empty" role="status">
+          <div className="pixel neon-magenta" style={{ fontSize: 14 }}>
+            SIN PUNTUACIONES AÚN
           </div>
-        ))}
-        {user && youRank !== null && youScore !== null && (
-          <>
-            <div className="tr you-label">▸ TU MEJOR MARCA EN {game.title}</div>
-            <div className="tr you" style={{ animationDelay: `${rows.length * 50 + 50}ms` }}>
-              <div className="rk" style={{ color: "var(--yellow)" }}>#{String(youRank).padStart(2, "0")}</div>
-              <div className="pl" style={{ color: "var(--yellow)" }}>{user.name}</div>
-              <div className="sc" style={{ color: "var(--yellow)", textShadow: "0 0 6px rgba(245,255,0,0.5)" }}>
-                {fmt(youScore || 9999)}
-              </div>
-              <div className="dt">11/05/2026</div>
+          <p>
+            Nadie ha guardado una marca en {selected.title}. ¿Serás el primero?
+          </p>
+          {selected.playable && (
+            <Link className="btn lg" href={`/juegos/${selected.id}/jugar`}>
+              ▶&nbsp; JUGAR AHORA
+            </Link>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="podium">
+            <PodiumSlot entry={rows[1]} place={2} className="silver" />
+            <PodiumSlot entry={rows[0]} place={1} className="gold" />
+            <PodiumSlot entry={rows[2]} place={3} className="bronze" />
+          </div>
+
+          <div className="hall-table">
+            <div className="th">
+              <div>RANGO</div>
+              <div>JUGADOR</div>
+              <div>PUNTUACIÓN</div>
+              <div>FECHA</div>
             </div>
-          </>
-        )}
-      </div>
+            {rows.map((r, i) => (
+              <div
+                key={r.rank}
+                className={
+                  "tr" +
+                  (i === 0
+                    ? " top1"
+                    : i === 1
+                      ? " top2"
+                      : i === 2
+                        ? " top3"
+                        : "")
+                }
+                style={{ animationDelay: `${i * 50}ms` }}
+              >
+                <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
+                <div className="pl">{r.name}</div>
+                <div className="sc">{fmt(r.score)}</div>
+                <div className="dt">{r.date}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       <div style={{ textAlign: "center", marginTop: 32 }}>
         <Link className="btn lg" href="/games">

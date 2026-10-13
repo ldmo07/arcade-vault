@@ -1,24 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GAMES, seededScores } from "@/lib/data";
-
-export function generateStaticParams() {
-  return GAMES.map((g) => ({ id: g.id }));
-}
+import { getGame, getTopScores } from "@/lib/games-repo";
 
 export async function generateMetadata(props: PageProps<"/juegos/[id]">): Promise<Metadata> {
   const { id } = await props.params;
-  const game = GAMES.find((g) => g.id === id);
+  const game = await getGame(id);
   return game ? { title: game.title, description: game.short } : {};
 }
 
 export default async function GameDetailPage(props: PageProps<"/juegos/[id]">) {
   const { id } = await props.params;
-  const game = GAMES.find((g) => g.id === id);
+  const game = await getGame(id);
   if (!game) notFound();
 
-  const scores = seededScores(id.length * 17 + 3, 10);
+  const scores = await getTopScores(game.id, 10);
 
   return (
     <div className="av-detail fade-in">
@@ -38,7 +34,7 @@ export default async function GameDetailPage(props: PageProps<"/juegos/[id]">) {
           <div className="stat-strip">
             <div>
               <div className="l">Partidas</div>
-              <div className="v">{game.plays}</div>
+              <div className="v">{game.plays.toLocaleString("es-ES")}</div>
             </div>
             <div>
               <div className="l">Mejor global</div>
@@ -71,8 +67,16 @@ export default async function GameDetailPage(props: PageProps<"/juegos/[id]">) {
       <aside>
         <div className="leaderboard">
           <h3>MEJORES PUNTUACIONES</h3>
+          {scores.length === 0 && (
+            <div role="status" style={{ padding: "28px 8px", textAlign: "center" }}>
+              <div className="pixel neon-magenta" style={{ fontSize: 12 }}>
+                SIN PUNTUACIONES AÚN
+              </div>
+              <div style={{ marginTop: 8, fontSize: 12, color: "var(--ink-faint)" }}>¿Serás el primero?</div>
+            </div>
+          )}
           {scores.map((r, i) => (
-            <div key={r.name} className={"lb-row" + (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")}>
+            <div key={r.rank} className={"lb-row" + (i === 0 ? " top1" : i === 1 ? " top2" : i === 2 ? " top3" : "")}>
               <div className="rk">#{String(r.rank).padStart(2, "0")}</div>
               <div className="pl">
                 {r.name}
