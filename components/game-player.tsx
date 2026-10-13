@@ -2,18 +2,19 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { submitScore } from "@/app/juegos/[id]/jugar/actions";
 import { AsteroidsCanvas } from "@/components/games/asteroids-canvas";
 import type { GameRow } from "@/lib/games-repo";
 import { useSession } from "@/lib/session";
 
 export function GamePlayer({ game }: { game: GameRow }) {
-  const { user, saveScore } = useSession();
+  const { user } = useSession();
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
   const [typedName, setTypedName] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [engineLevel, setEngineLevel] = useState(1);
   const [runId, setRunId] = useState(0);
 
@@ -40,7 +41,18 @@ export function GamePlayer({ game }: { game: GameRow }) {
     setRunId((id) => id + 1);
     setPaused(false);
     setOver(false);
-    setSaved(false);
+    setSaveStatus("idle");
+  };
+
+  const save = async () => {
+    if (saveStatus === "saving" || saveStatus === "saved") return;
+    setSaveStatus("saving");
+    try {
+      const res = await submitScore({ gameId: game.id, name, score });
+      setSaveStatus(res.ok ? "saved" : "error");
+    } catch {
+      setSaveStatus("error");
+    }
   };
 
   return (
@@ -151,27 +163,40 @@ export function GamePlayer({ game }: { game: GameRow }) {
             <h2 id="game-over-title">FIN DEL JUEGO</h2>
             <div className="final-label">PUNTUACIÓN FINAL</div>
             <div className="final">{score.toLocaleString("es-ES")}</div>
-            {!saved ? (
-              <div className="input-row">
-                <input
-                  value={name}
-                  onChange={(e) =>
-                    setTypedName(e.target.value.toUpperCase().slice(0, 10))
-                  }
-                  placeholder="TUS INICIALES"
-                  aria-label="Tus iniciales"
-                />
-                <button
-                  type="button"
-                  className="btn yellow"
-                  onClick={() => {
-                    saveScore({ game: game.id, score, name });
-                    setSaved(true);
-                  }}
-                >
-                  GUARDAR PUNTUACIÓN
-                </button>
-              </div>
+            {saveStatus !== "saved" ? (
+              <>
+                <div className="input-row">
+                  <input
+                    value={name}
+                    onChange={(e) =>
+                      setTypedName(e.target.value.toUpperCase().slice(0, 10))
+                    }
+                    placeholder="TUS INICIALES"
+                    aria-label="Tus iniciales"
+                    disabled={saveStatus === "saving"}
+                  />
+                  <button
+                    type="button"
+                    className={
+                      "btn yellow" + (saveStatus === "error" ? " is-error" : "")
+                    }
+                    disabled={saveStatus === "saving"}
+                    aria-busy={saveStatus === "saving"}
+                    onClick={save}
+                  >
+                    {saveStatus === "saving"
+                      ? "GUARDANDO…"
+                      : saveStatus === "error"
+                        ? "ERROR, REINTENTAR"
+                        : "GUARDAR PUNTUACIÓN"}
+                  </button>
+                </div>
+                <div className="save-error" role="alert">
+                  {saveStatus === "error"
+                    ? "NO SE PUDO GUARDAR LA PUNTUACIÓN. INTÉNTALO DE NUEVO."
+                    : ""}
+                </div>
+              </>
             ) : (
               <div className="toast-saved" role="status">
                 ▸ PUNTUACIÓN GUARDADA_
