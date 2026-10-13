@@ -3,7 +3,7 @@
 > **Status:** Aprobado
 > **Depends on:** SPEC 01, SPEC 04, SPEC 05
 > **Date:** 2026-10-13
-> **Objective:** Integrar la app con Supabase (proyecto `jnkfrkejprbppolsspld`) creando en él las tablas `games` y `scores` (con RLS), migrar el catálogo de `lib/data.ts` a la tabla `games`, guardar las puntuaciones reales desde el modal de fin de partida y mostrar el top 10 por juego en `/salon`.
+> **Objective:** Integrar la app con Supabase (proyecto `jnkfrkejprbppolsspld`) creando en él las tablas `games` y `scores` (con RLS), migrar el catálogo de `lib/data.ts` a la tabla `games`, guardar las puntuaciones reales desde el modal de fin de partida y mostrar el top 10 por juego en `/salon` y en el detalle `/juegos/[id]`.
 
 ---
 
@@ -42,6 +42,7 @@ Toda la persistencia de esta spec vive en Supabase; no hay datos en memoria, JSO
 - Server Action `app/juegos/[id]/jugar/actions.ts` → `submitScore({ gameId, name, score })` que inserta en `scores` y devuelve `{ ok: true } | { ok: false, error }`.
 - Migrar a datos de BD las pantallas que usan `GAMES`: `app/page.tsx` (preview), `app/games/page.tsx` / `components/library.tsx`, `app/juegos/[id]/page.tsx`, `app/juegos/[id]/jugar/page.tsx`, `components/game-card.tsx` y `components/hall-of-fame.tsx`.
 - `/salon`: pestañas por juego (leídas de `games`) y tabla top 10 de `scores` con rango, nombre, puntuación y fecha; estado vacío "SIN PUNTUACIONES AÚN".
+- `/juegos/[id]` (detalle): la sección "MEJORES PUNTUACIONES" lee el top 10 de `scores` del juego mostrado con `getTopScores`, con rango, nombre, fecha y puntuación; estado vacío "SIN PUNTUACIONES AÚN". Se elimina `seededScores` de `lib/data.ts`.
 - `GamePlayer`: "GUARDAR PUNTUACIÓN" llama a `submitScore`; estados `GUARDANDO…`, `PUNTUACIÓN GUARDADA_` y `ERROR, REINTENTAR` (el modal permanece abierto y reintentable).
 - `best` y `plays` del catálogo salen de `game_stats`; sin partidas guardadas valen `0`.
 - Aplicar `/ui-ux-pro-max` al estado vacío, a los estados del botón y a la tabla de `/salon` (según `CLAUDE.md`).
@@ -52,7 +53,6 @@ Toda la persistencia de esta spec vive en Supabase; no hay datos en memoria, JSO
 - Anti-trampas real (Edge Function, firma de partidas, rate limit).
 - Realtime / actualización en vivo del ranking.
 - Scores falsos de ejemplo en la BD.
-- Mostrar el top por juego en `/juegos/[id]` (esa página sigue con `seededScores`).
 - Datos mock de la home (`RECENT_SCORES`, `TOP_PLAYERS`, `HOME_STATS` en `lib/home-data.ts`).
 - Fallback a `localStorage` si falla Supabase.
 - Panel de administración de `games`.
@@ -143,7 +143,7 @@ export async function submitScore(input: {
 
 Convenciones:
 
-- `Game` en `lib/data.ts` se sustituye por `GameRow`; `CATS` y los tipos `Category`/`GameColor` se conservan. `GAMES` y `seededScores` se eliminan de los usos migrados (`seededScores` se mantiene solo para `/juegos/[id]`).
+- `Game` en `lib/data.ts` se sustituye por `GameRow`; `CATS` y los tipos `Category`/`GameColor` se conservan. `GAMES` y `seededScores` se eliminan de `lib/data.ts` (`seededScores` en el paso 9).
 - `name` se normaliza en servidor: `trim`, mayúsculas, máximo 12 caracteres, no vacío. `score` debe ser entero ≥ 0.
 - `date` en `ScoreEntry` se formatea `dd/mm/aaaa` (es-ES) en el servidor.
 - `getTopScores` ordena por `score desc, created_at asc` y devuelve máximo 10 por defecto.
@@ -165,13 +165,14 @@ Antes de empezar: leer `node_modules/next/dist/docs/01-app` (Server Actions, dat
 6. Integrar en `components/game-player.tsx`: botón de guardado con estados `GUARDANDO…` / `PUNTUACIÓN GUARDADA_` / `ERROR, REINTENTAR`, deshabilitado mientras guarda o tras guardar. Verificación: jugar Asteroides, guardar y ver la fila en BD (MCP `execute_sql`).
 7. Reescribir `/salon`: `app/salon/page.tsx` (Server Component) carga juegos y top 10 del juego seleccionado; `components/hall-of-fame.tsx` conserva pestañas (por `searchParams` o estado cliente según la doc) y estado vacío. Verificación: `npm run dev`, el score guardado en el paso 6 aparece en el puesto 1 de `/salon`.
 8. Actualizar `CLAUDE.md` (Stack: tablas `games` y `scores`, `lib/games-repo.ts`). Correr `npm run lint` y `npm run build`.
+9. (Añadido tras la implementación inicial) En `app/juegos/[id]/page.tsx` sustituir `seededScores` por `getTopScores(game.id, 10)` y pintar el estado vacío; eliminar `seededScores`, `ScoreRow` y `PLAYERS` de `lib/data.ts` si quedan sin uso. Verificación: `npm run dev`, `/juegos/asteroides` lista los scores guardados y `/juegos/caida` muestra el estado vacío; después `npm run lint` y `npm run build`.
 
 ---
 
 ## Criterios de aceptación
 
 - [x] `npm run lint` y `npm run build` terminan sin errores.
-- [x] Ninguna pantalla de esta spec lee datos de `lib/data.ts` (salvo `CATS`, tipos y `seededScores` en `/juegos/[id]`): catálogo y ranking vienen de Supabase.
+- [x] Ninguna pantalla de esta spec lee datos de `lib/data.ts` (salvo `CATS` y tipos): catálogo y ranking vienen de Supabase.
 - [x] Las filas guardadas desde la app se ven en la BD remota (`execute_sql` sobre `public.scores`) y en el dashboard de Supabase.
 - [x] En el proyecto remoto existen `games` (8 filas), `scores` (vacía de partida) y la vista `game_stats`, con RLS activado en `games` y `scores`.
 - [x] `get_advisors` (seguridad) no reporta tablas sin RLS ni vistas `security definer`.
@@ -189,8 +190,12 @@ Antes de empezar: leer `node_modules/next/dist/docs/01-app` (Server Actions, dat
 - [x] `/salon` lista una pestaña por juego en el orden de `sort_order`; al seleccionar un juego sin scores muestra "SIN PUNTUACIONES AÚN".
 - [x] El score recién guardado aparece en `/salon` (pestaña Asteroides) sin reiniciar el servidor.
 - [ ] `/salon` muestra como máximo 10 filas ordenadas por puntuación descendente; empates se ordenan por antigüedad.
-- [ ] `best` de Asteroides en el catálogo pasa a ser el máximo guardado y `plays` el número de scores.
+- [x] `best` de Asteroides en el catálogo pasa a ser el máximo guardado y `plays` el número de scores.
 - [x] `GamePlayer` ya no escribe en `localStorage` bajo `av_scores`.
+- [x] `/juegos/[id]` muestra en "MEJORES PUNTUACIONES" las filas de `scores` de ese juego (máximo 10, por puntuación descendente y empate por antigüedad), distintas para cada juego.
+- [x] Un juego sin scores muestra "SIN PUNTUACIONES AÚN" en `/juegos/[id]`.
+- [x] Un score recién guardado aparece en `/juegos/[id]` del mismo juego sin reiniciar el servidor, y no en los demás.
+- [x] `seededScores` ya no existe en el código.
 - [ ] Ningún componente cliente importa `lib/supabase/server.ts` ni `lib/games-repo.ts`.
 
 ---
@@ -210,7 +215,8 @@ Antes de empezar: leer `node_modules/next/dist/docs/01-app` (Server Actions, dat
 - **Sí:** el insert pasa por una Server Action (`submitScore`) que valida y normaliza el nombre, aunque RLS permita insert directo. Un solo punto de entrada de la UI y revalidación de `/salon`.
 - **Sí:** catálogo y ranking vacíos sembrados solo con `games`; scores reales empiezan en 0. Sin datos falsos mezclados con reales.
 - **No:** mantener los mocks como fallback si la BD falla.
-- **Sí:** `/salon` es la única vista de lectura del leaderboard en esta spec. `/juegos/[id]` conserva `seededScores`; queda incoherente a propósito hasta la siguiente spec.
+- **Sí:** el leaderboard se muestra en `/salon` y en `/juegos/[id]`, ambos con `getTopScores`. Ampliación decidida por el usuario tras la implementación inicial; sustituye a la decisión de dejar `/juegos/[id]` con `seededScores`.
+- **No:** mantener `seededScores` como relleno en `/juegos/[id]`.
 - **No:** Realtime. Revalidación bajo demanda es suficiente.
 - **Sí:** error visible y reintento en el modal; sin fallback a `localStorage`.
 - **Nota:** el usuario dejó marcada solo la opción "Guardar score real" en el alcance y luego aceptó `/salon` con top 10 por juego como lectura.
@@ -237,7 +243,7 @@ Antes de empezar: leer `node_modules/next/dist/docs/01-app` (Server Actions, dat
 - Auth y jugadores con cuenta.
 - Anti-cheat y rate limiting.
 - Realtime.
-- Top por juego en `/juegos/[id]` ni mocks de la home.
+- Mocks de la home.
 - Scores de ejemplo en la BD.
 - Panel de administración de juegos.
 - Tests automatizados.
