@@ -170,27 +170,27 @@ Antes de empezar: leer `node_modules/next/dist/docs/01-app` (Server Actions, dat
 
 ## Criterios de aceptación
 
-- [ ] `npm run lint` y `npm run build` terminan sin errores.
-- [ ] Ninguna pantalla de esta spec lee datos de `lib/data.ts` (salvo `CATS`, tipos y `seededScores` en `/juegos/[id]`): catálogo y ranking vienen de Supabase.
-- [ ] Las filas guardadas desde la app se ven en la BD remota (`execute_sql` sobre `public.scores`) y en el dashboard de Supabase.
-- [ ] En el proyecto remoto existen `games` (8 filas), `scores` (vacía de partida) y la vista `game_stats`, con RLS activado en `games` y `scores`.
-- [ ] `get_advisors` (seguridad) no reporta tablas sin RLS ni vistas `security definer`.
+- [x] `npm run lint` y `npm run build` terminan sin errores.
+- [x] Ninguna pantalla de esta spec lee datos de `lib/data.ts` (salvo `CATS`, tipos y `seededScores` en `/juegos/[id]`): catálogo y ranking vienen de Supabase.
+- [x] Las filas guardadas desde la app se ven en la BD remota (`execute_sql` sobre `public.scores`) y en el dashboard de Supabase.
+- [x] En el proyecto remoto existen `games` (8 filas), `scores` (vacía de partida) y la vista `game_stats`, con RLS activado en `games` y `scores`.
+- [x] `get_advisors` (seguridad) no reporta tablas sin RLS ni vistas `security definer`.
 - [ ] Con la clave publishable se puede `select` en `games`, `scores` y `game_stats`, e `insert` en `scores`; `update` y `delete` sobre `scores` son rechazados.
-- [ ] Un `insert` en `scores` con `score < 0`, `name` vacío, `name` de más de 12 caracteres o `game_id` inexistente es rechazado por la BD.
+- [x] Un `insert` en `scores` con `score < 0`, `name` vacío, `name` de más de 12 caracteres o `game_id` inexistente es rechazado por la BD.
 - [ ] `/`, `/games`, `/juegos/[id]` y `/juegos/[id]/jugar` muestran el catálogo leído de `games` con títulos, categorías, portadas y colores idénticos a los actuales.
 - [ ] `/games` lista exactamente los juegos de la tabla `games` (hoy 8, ordenados por `sort_order`), con el filtro por categoría funcionando; añadir una fila en `games` (MCP `execute_sql`) hace que aparezca en `/games` sin tocar código.
-- [ ] Sin sesión iniciada se puede jugar Asteroides y guardar el score; la fila queda con `user_id = null`.
-- [ ] Un `insert` en `scores` con un `user_id` distinto de `auth.uid()` es rechazado por RLS.
-- [ ] Un id inexistente en `/juegos/[id]` y `/juegos/[id]/jugar` devuelve 404.
-- [ ] Sin partidas guardadas, `best` y `plays` se muestran como `0` en tarjetas y detalle.
-- [ ] Terminar una partida de Asteroides y pulsar "GUARDAR PUNTUACIÓN" con nombre `abc` inserta una fila en `scores` con `game_id = 'asteroides'`, `name = 'ABC'` y la puntuación del HUD, y el botón muestra `PUNTUACIÓN GUARDADA_`.
+- [x] Sin sesión iniciada se puede jugar Asteroides y guardar el score; la fila queda con `user_id = null`.
+- [x] Un `insert` en `scores` con un `user_id` distinto de `auth.uid()` es rechazado por RLS.
+- [x] Un id inexistente en `/juegos/[id]` y `/juegos/[id]/jugar` devuelve 404.
+- [x] Sin partidas guardadas, `best` y `plays` se muestran como `0` en tarjetas y detalle.
+- [x] Terminar una partida de Asteroides y pulsar "GUARDAR PUNTUACIÓN" con nombre `abc` inserta una fila en `scores` con `game_id = 'asteroides'`, `name = 'ABC'` y la puntuación del HUD, y el botón muestra `PUNTUACIÓN GUARDADA_`.
 - [ ] Mientras guarda, el botón muestra `GUARDANDO…` y no se puede pulsar dos veces; tras guardar no se puede insertar un segundo score desde el mismo modal.
-- [ ] Si `submitScore` falla (p. ej. variables de entorno inválidas), el modal muestra `ERROR, REINTENTAR`, sigue abierto y un nuevo intento funciona al restablecer la conexión.
-- [ ] `/salon` lista una pestaña por juego en el orden de `sort_order`; al seleccionar un juego sin scores muestra "SIN PUNTUACIONES AÚN".
-- [ ] El score recién guardado aparece en `/salon` (pestaña Asteroides) sin reiniciar el servidor.
+- [x] Si `submitScore` falla (p. ej. variables de entorno inválidas), el modal muestra `ERROR, REINTENTAR`, sigue abierto y un nuevo intento funciona al restablecer la conexión.
+- [x] `/salon` lista una pestaña por juego en el orden de `sort_order`; al seleccionar un juego sin scores muestra "SIN PUNTUACIONES AÚN".
+- [x] El score recién guardado aparece en `/salon` (pestaña Asteroides) sin reiniciar el servidor.
 - [ ] `/salon` muestra como máximo 10 filas ordenadas por puntuación descendente; empates se ordenan por antigüedad.
 - [ ] `best` de Asteroides en el catálogo pasa a ser el máximo guardado y `plays` el número de scores.
-- [ ] `GamePlayer` ya no escribe en `localStorage` bajo `av_scores`.
+- [x] `GamePlayer` ya no escribe en `localStorage` bajo `av_scores`.
 - [ ] Ningún componente cliente importa `lib/supabase/server.ts` ni `lib/games-repo.ts`.
 
 ---
