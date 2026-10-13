@@ -1,21 +1,22 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CATS, GAMES } from "@/lib/data";
+import { CATS } from "@/lib/data";
+import type { GameRow } from "@/lib/games-repo";
 import { GameCard } from "@/components/game-card";
 
-export function Library() {
+export function Library({ games }: { games: GameRow[] }) {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<(typeof CATS)[number]>("TODOS");
 
   const filtered = useMemo(
     () =>
-      GAMES.filter(
+      games.filter(
         (g) =>
           (cat === "TODOS" || g.cat === cat) &&
           g.title.toLowerCase().includes(q.toLowerCase()),
       ),
-    [q, cat],
+    [games, q, cat],
   );
 
   return (

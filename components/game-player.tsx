@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AsteroidsCanvas } from "@/components/games/asteroids-canvas";
-import type { Game } from "@/lib/data";
+import type { GameRow } from "@/lib/games-repo";
 import { useSession } from "@/lib/session";
 
-export function GamePlayer({ game }: { game: Game }) {
+export function GamePlayer({ game }: { game: GameRow }) {
   const { user, saveScore } = useSession();
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import type { Game } from "@/lib/data";
+import type { GameRow } from "@/lib/games-repo";
 
-export function MiniCard({ game }: { game: Game }) {
+export function MiniCard({ game }: { game: GameRow }) {
   return (
     <Link className="mini-card" href={`/juegos/${game.id}`}>
       <div className="mini-cover">
