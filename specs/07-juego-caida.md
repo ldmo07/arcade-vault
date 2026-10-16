@@ -1,6 +1,6 @@
 # SPEC 07 — Juego Caída (Tetris) en canvas con leaderboard
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** SPEC 05, SPEC 06
 > **Date:** 2026-10-16
 > **Objective:** Portar `references/started-games/03-tetris` a un motor TypeScript en `lib/games/caida/`, montarlo en `/juegos/caida/jugar` mediante un registro de juegos por id y guardar sus puntuaciones en el leaderboard de Supabase.
