@@ -1,6 +1,6 @@
 # SPEC 09 — Juego Serpentina (Snake) en canvas con leaderboard
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** SPEC 05, SPEC 06, SPEC 07, SPEC 08
 > **Date:** 2026-10-16
 > **Objective:** Crear Snake como motor TypeScript en `lib/games/serpentina/` con frutas pixel-art de `references/source-assets/snake-assets/`, montarlo en `/juegos/serpentina/jugar` y guardar sus puntuaciones en el leaderboard de Supabase.

@@ -1,6 +1,6 @@
 # SPEC 08 — Juego Bloque Buster (Arkanoid) en canvas con leaderboard
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** SPEC 05, SPEC 06, SPEC 07
 > **Date:** 2026-10-16
 > **Objective:** Portar `references/started-games/04-arkanoid` a un motor TypeScript en `lib/games/bloque-buster/`, montarlo en `/juegos/bloque-buster/jugar` con control por teclado y ratón, y guardar sus puntuaciones en el leaderboard de Supabase.
