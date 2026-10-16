@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { AsteroidsCanvas } from "@/components/games/asteroids-canvas";
+import { CaidaCanvas } from "@/components/games/caida-canvas";
 
 export interface HudStat {
   label: "Puntuación" | "Vidas" | "Líneas" | "Nivel";
@@ -28,6 +29,14 @@ export const GAME_REGISTRY: Record<string, GameRegistryEntry> = {
     hud: [
       { label: "Puntuación", key: "score" },
       { label: "Vidas", key: "lives" },
+      { label: "Nivel", key: "level" },
+    ],
+  },
+  caida: {
+    Canvas: CaidaCanvas,
+    hud: [
+      { label: "Puntuación", key: "score" },
+      { label: "Líneas", key: "lines" },
       { label: "Nivel", key: "level" },
     ],
   },
