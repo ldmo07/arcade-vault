@@ -3,40 +3,60 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { submitScore } from "@/app/juegos/[id]/jugar/actions";
-import { AsteroidsCanvas } from "@/components/games/asteroids-canvas";
 import type { GameRow } from "@/lib/data";
+import { GAME_REGISTRY, type HudStat } from "@/lib/games/registry";
 import { useSession } from "@/lib/session";
+
+// HUD de los juegos simulados (sin entrada en el registro)
+const DEFAULT_HUD: HudStat[] = [
+  { label: "Puntuación", key: "score" },
+  { label: "Vidas", key: "lives" },
+  { label: "Nivel", key: "level" },
+];
 
 export function GamePlayer({ game }: { game: GameRow }) {
   const { user } = useSession();
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
+  const [lines, setLines] = useState(0);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
   const [typedName, setTypedName] = useState<string | null>(null);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
   const [engineLevel, setEngineLevel] = useState(1);
   const [runId, setRunId] = useState(0);
 
-  const isAsteroids = game.id === "asteroides";
+  const entry = GAME_REGISTRY[game.id];
+  const Canvas = entry?.Canvas;
+  const hud = entry?.hud ?? DEFAULT_HUD;
 
   // La sesión se lee tras la hidratación; el nombre escrito en el modal tiene prioridad.
   const name = typedName ?? user?.name ?? "INVITADO";
-  // Juegos simulados: el nivel sube cada 2.500 puntos. Asteroides usa el nivel real del motor.
-  const level = isAsteroids ? engineLevel : 1 + Math.floor(score / 2500);
+  // Juegos simulados: el nivel sube cada 2.500 puntos. Los juegos del registro usan el nivel real del motor.
+  const level = entry ? engineLevel : 1 + Math.floor(score / 2500);
+
+  const hudValues: Record<HudStat["key"], string> = {
+    score: score.toLocaleString("es-ES"),
+    lives: "♥ ".repeat(lives).trim() || "—",
+    lines: String(lines),
+    level: String(level).padStart(2, "0"),
+  };
 
   useEffect(() => {
-    if (isAsteroids || over || paused) return;
+    if (entry || over || paused) return;
     const t = setInterval(
       () => setScore((s) => s + Math.floor(10 + Math.random() * 90)),
       220,
     );
     return () => clearInterval(t);
-  }, [isAsteroids, over, paused]);
+  }, [entry, over, paused]);
 
   const restart = () => {
     setScore(0);
     setLives(3);
+    setLines(0);
     setEngineLevel(1);
     setRunId((id) => id + 1);
     setPaused(false);
@@ -65,20 +85,25 @@ export function GamePlayer({ game }: { game: GameRow }) {
               {name}
             </div>
           </div>
-          <div className="hud-stat">
-            <div className="l">Puntuación</div>
-            <div className="v">{score.toLocaleString("es-ES")}</div>
-          </div>
-          <div className="hud-stat lives">
-            <div className="l">Vidas</div>
-            <div className="v" aria-label={`${lives} vidas`}>
-              {"♥ ".repeat(lives).trim() || "—"}
+          {hud.map((stat) => (
+            <div
+              key={stat.key}
+              className={
+                "hud-stat" +
+                (stat.key === "lives" || stat.key === "level"
+                  ? ` ${stat.key}`
+                  : "")
+              }
+            >
+              <div className="l">{stat.label}</div>
+              <div
+                className="v"
+                aria-label={stat.key === "lives" ? `${lives} vidas` : undefined}
+              >
+                {hudValues[stat.key]}
+              </div>
             </div>
-          </div>
-          <div className="hud-stat level">
-            <div className="l">Nivel</div>
-            <div className="v">{String(level).padStart(2, "0")}</div>
-          </div>
+          ))}
         </div>
         <div className="hud-actions">
           <button
@@ -103,12 +128,13 @@ export function GamePlayer({ game }: { game: GameRow }) {
 
       <div className="crt">
         <div className="crt-screen">
-          {isAsteroids ? (
-            <AsteroidsCanvas
+          {Canvas ? (
+            <Canvas
               key={runId}
               paused={paused || over}
               onScore={setScore}
               onLives={setLives}
+              onLines={setLines}
               onLevel={setEngineLevel}
               onGameOver={() => setOver(true)}
             />
