@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Arcade Vault: an online games platform where players compete for the highest score. Early stage — `app/` still holds the Create Next App scaffold (default `page.tsx`, placeholder metadata in `app/layout.tsx`). No backend, database, or tests yet.
 
-The README says the project follows Spec Driven Design using the `/spec` and `/spec-impl` skills from `Klerith/fernando-skills` (`npx skills@latest add Klerith/fernando-skills`).
+The README says the project follows Spec Driven Design using the `/spec` and `/spec-impl` skills from `Klerith/fernando-skills` (`npx skills@latest add Klerith/fernando-skills`). Para añadir un juego nuevo con su leaderboard usa `/add-game` (redacta la spec basada en SPEC 05 y 06; luego `/spec-impl`).
 
 ## Stack
 
