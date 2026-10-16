@@ -8,9 +8,17 @@ import type {
   AsteroidsHandle,
 } from "@/lib/games/asteroids/types";
 
-interface AsteroidsCanvasProps extends AsteroidsCallbacks {
+// onLives y onLevel son opcionales para encajar en GameCanvasProps del registro
+interface AsteroidsCanvasProps extends Omit<
+  AsteroidsCallbacks,
+  "onLives" | "onLevel"
+> {
   paused: boolean;
+  onLives?: AsteroidsCallbacks["onLives"];
+  onLevel?: AsteroidsCallbacks["onLevel"];
 }
+
+type AsteroidsCanvasCallbacks = Omit<AsteroidsCanvasProps, "paused">;
 
 export function AsteroidsCanvas({
   paused,
@@ -21,7 +29,7 @@ export function AsteroidsCanvas({
 }: AsteroidsCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const handleRef = useRef<AsteroidsHandle | null>(null);
-  const callbacksRef = useRef<AsteroidsCallbacks>({
+  const callbacksRef = useRef<AsteroidsCanvasCallbacks>({
     onScore,
     onLives,
     onLevel,
@@ -38,8 +46,8 @@ export function AsteroidsCanvas({
     if (!canvas) return;
     const handle = createAsteroids(canvas, {
       onScore: (v) => callbacksRef.current.onScore(v),
-      onLives: (v) => callbacksRef.current.onLives(v),
-      onLevel: (v) => callbacksRef.current.onLevel(v),
+      onLives: (v) => callbacksRef.current.onLives?.(v),
+      onLevel: (v) => callbacksRef.current.onLevel?.(v),
       onGameOver: (v) => callbacksRef.current.onGameOver(v),
     });
     handleRef.current = handle;
