@@ -80,3 +80,8 @@ export const DROP_STEP_MS = 90; // se resta por nivel por encima del 1
 export const KICKS = [0, -1, 1, -2, 2];
 
 export const GRID_COLOR = "#22222e";
+
+// Panel SIGUIENTE a la derecha del tablero (área de 4×4 celdas)
+export const NEXT_X = BOARD_X + COLS * BLOCK + 30;
+export const NEXT_Y = 56;
+export const NEXT_SIZE = 30;
