@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { H, SPRITESHEET_URL, W } from "@/lib/games/bloque-buster/constants";
+import {
+  BOUNCE_SOUND_URL,
+  BREAK_SOUND_URL,
+  H,
+  SPRITESHEET_URL,
+  W,
+} from "@/lib/games/bloque-buster/constants";
 import { createBloqueBuster } from "@/lib/games/bloque-buster/engine";
 import type {
   BloqueBusterCallbacks,
@@ -50,6 +56,14 @@ export function BloqueBusterCanvas({
     let cancelled = false;
     let handle: BloqueBusterHandle | null = null;
 
+    // Sonidos precargados; cada reproducción usa un clon para permitir solapes
+    const bounceSound = new Audio(BOUNCE_SOUND_URL);
+    const breakSound = new Audio(BREAK_SOUND_URL);
+    const play = (base: HTMLAudioElement) => {
+      if (cancelled) return;
+      (base.cloneNode() as HTMLAudioElement).play().catch(() => {});
+    };
+
     const img = new Image();
     img.onload = () => {
       if (cancelled) return;
@@ -60,6 +74,8 @@ export function BloqueBusterCanvas({
           onLives: (v) => callbacksRef.current.onLives?.(v),
           onLevel: (v) => callbacksRef.current.onLevel?.(v),
           onGameOver: (v) => callbacksRef.current.onGameOver(v),
+          onBounce: () => play(bounceSound),
+          onBlockBreak: () => play(breakSound),
         },
         img,
       );

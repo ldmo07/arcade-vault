@@ -21,7 +21,8 @@ Asteroides (SPEC 05) y Caída (SPEC 07) son los dos juegos reales y ambos se con
 - Wrapper `components/games/bloque-buster-canvas.tsx`: carga el spritesheet y crea el motor cuando la imagen está lista.
 - Entrada `bloque-buster` en `lib/games/registry.ts` con HUD `Puntuación`, `Vidas`, `Nivel`.
 - Migración `supabase/migrations/<timestamp>_juego_bloque_buster.sql` (vía MCP `apply_migration`): `update public.games set playable = true where id = 'bloque-buster'`. La fila ya existe (`BLOQUE BUSTER`, `ARCADE`, `cyan`, `cover-bricks`, `sort_order` 1) y la portada `.cover-bricks` ya está en `app/globals.css`.
-- Assets: `public/games/bloque-buster/spritesheet-breakout.png` (copia del de `references/`).
+- Assets: `public/games/bloque-buster/spritesheet-breakout.png`, `ball-bounce.mp3` y `break-sound.mp3` (copias de los de `references/`; los sonidos van en `public/games/bloque-buster/sounds/`).
+- Sonido: el motor notifica los eventos `onBounce` (rebote en pared o paleta) y `onBlockBreak` (bloque roto); el wrapper reproduce `ball-bounce.mp3` y `break-sound.mp3` con `Audio`. Sin tecla ni control de mute.
 - Controles: `←` `→` mueven la paleta a 400 px/s y el movimiento del ratón sobre el canvas la sitúa centrada bajo el cursor. Gana la última entrada recibida.
 - Mecánica del original: paleta de 81×14, bola de 16×16, bloques de 64×24 en una rejilla de 10 columnas con origen (80, 80), 3 vidas, 10 puntos por bloque, 5 niveles con velocidad ×1.00, ×1.10, ×1.21, ×1.33 y ×1.46, y animación de explosión de 4 frames (150 ms) al romper un bloque.
 - HUD en React: `Puntuación`, `Vidas`, `Nivel`. Callbacks `onScore`, `onLives`, `onLevel`, `onGameOver`.
@@ -34,12 +35,12 @@ Asteroides (SPEC 05) y Caída (SPEC 07) son los dos juegos reales y ambos se con
 - HUD dibujado en el canvas (`Score`, `Nivel`, bolas de vidas): lo muestra `GamePlayer`.
 - Overlays `GAME OVER`, `¡Completaste el juego!` y de pausa.
 - Pausa propia (`P`, `Escape`) y selector "Saltar al nivel" con su `click` del canvas.
-- Sonidos (`ball-bounce.mp3`, `break-sound.mp3`) y la carga de `Audio`.
+- La carga y reproducción de `Audio` dentro del motor: pasan al wrapper (el motor solo emite `onBounce` y `onBlockBreak`).
 - Copia del spritesheet a un canvas intermedio con `document.createElement('canvas')`; se dibuja la imagen directamente.
 
 **Fuera de alcance (para futuras specs):**
 
-- Sonido y mute global.
+- Mute global, control de volumen y música (los efectos de sonido de esta spec no tienen control).
 - Controles táctiles / móvil.
 - Canvas HiDPI.
 - Powerups, ángulo de rebote según el punto de la paleta, bloques de varios golpes (el original no los tiene).
@@ -61,6 +62,8 @@ export interface BloqueBusterCallbacks {
   onLives: (lives: number) => void;
   onLevel: (level: number) => void;
   onGameOver: (score: number) => void; // una vez por partida (derrota o victoria)
+  onBounce?: () => void; // una llamada por rebote en pared o paleta
+  onBlockBreak?: () => void; // bloque roto
 }
 
 export interface BloqueBusterHandle {
@@ -110,7 +113,7 @@ export function createBloqueBuster(
 
 Archivos del motor:
 
-- `constants.ts`: `W = 800`, `H = 600`, `PADDLE_SPEED = 400`, `PADDLE_W = 81`, `PADDLE_H = 14`, `PADDLE_Y = 560`, `BALL_SIZE = 16`, `BLOCK_COLS = 10`, `BLOCK_W = 64`, `BLOCK_H = 24`, `BLOCKS_ORIGIN_X = 80`, `BLOCKS_ORIGIN_Y = 80`, `BASE_BALL_VX = 200`, `BASE_BALL_VY = -300`, `POINTS_PER_BLOCK = 10`, `INITIAL_LIVES = 3`, `EXPLOSION_DURATION = 150`, `SPRITESHEET_URL = "/games/bloque-buster/spritesheet-breakout.png"`.
+- `constants.ts`: `W = 800`, `H = 600`, `PADDLE_SPEED = 400`, `PADDLE_W = 81`, `PADDLE_H = 14`, `PADDLE_Y = 560`, `BALL_SIZE = 16`, `BLOCK_COLS = 10`, `BLOCK_W = 64`, `BLOCK_H = 24`, `BLOCKS_ORIGIN_X = 80`, `BLOCKS_ORIGIN_Y = 80`, `BASE_BALL_VX = 200`, `BASE_BALL_VY = -300`, `POINTS_PER_BLOCK = 10`, `INITIAL_LIVES = 3`, `EXPLOSION_DURATION = 150`, `SPRITESHEET_URL = "/games/bloque-buster/spritesheet-breakout.png"`, `BOUNCE_SOUND_URL = "/games/bloque-buster/sounds/ball-bounce.mp3"`, `BREAK_SOUND_URL = "/games/bloque-buster/sounds/break-sound.mp3"`.
 - `levels.ts`: `LEVELS: LevelDef[]` con los 5 patrones de `levels.js` (parrilla 10×6, pirámide, ajedrez, filas con huecos, marco + cruz) y sus velocidades.
 - `sprites.ts`: tablas `SPRITES` y `EXPLOSION_FRAMES` de `spritesheet.js` (la explosión `gray` reutiliza los frames de `red`, como en el original) y `drawSprite(ctx, img, name, x, y, w, h)` / `drawFrame(...)`; sin carga de imagen.
 - `entities.ts`: creación y actualización de paleta, bola, bloques y explosiones; `draw(ctx)` recibe el `ctx` por parámetro.
@@ -132,6 +135,7 @@ Convenciones:
 - El motor ignora eventos de teclado cuyo `target` sea `input`, `textarea` o `select`; hace `preventDefault` (en `keydown` y `keyup`) de `←`, `→`, `↑`, `↓` y `Espacio` mientras el juego está activo y sin pausa.
 - Tras `onGameOver` el motor no acepta input; el reinicio lo hace React montando un wrapper nuevo (`key` distinto).
 - Contrato extendido: `createBloqueBuster` recibe un tercer parámetro (el spritesheet ya cargado) para que el motor no use `Image` ni `document`.
+- Sonido: el motor no usa `Audio`; llama a `onBounce` por cada rebote en pared o paleta y a `onBlockBreak` al romper un bloque, y nunca en pausa ni tras `onGameOver`. El wrapper reproduce el sonido con un clon (`cloneNode()`) del `Audio` precargado, como el original, y ignora el rechazo de `play()` (política de autoplay del navegador).
 
 Fila en `games` (ya sembrada, solo cambia `playable`):
 
@@ -155,6 +159,8 @@ Antes de empezar: leer `node_modules/next/dist/docs/01-app` (Client Components, 
 8. Aplicar con MCP `apply_migration` la migración `playable = true` para `bloque-buster` y guardarla en `supabase/migrations/<timestamp>_juego_bloque_buster.sql`. Verificación: MCP `execute_sql` (`select id, playable from games where id = 'bloque-buster'`) y `get_advisors` sin alertas nuevas.
 9. Añadir la entrada `bloque-buster` a `GAME_REGISTRY` en `lib/games/registry.ts` (HUD: puntuación, vidas, nivel). Verificación: `npm run dev`, jugar `/juegos/bloque-buster/jugar`, guardar la puntuación y comprobar la fila en `scores` (MCP `execute_sql`) y en `/salon?juego=bloque-buster`.
 10. Actualizar `CLAUDE.md` (juegos jugables: añadir `bloque-buster` con HUD Puntuación, Vidas, Nivel; motor con spritesheet en `public/games/bloque-buster/`). Correr `npm run lint` y `npm run build`.
+11. (Añadido tras la implementación inicial) Copiar `ball-bounce.mp3` y `break-sound.mp3` de `references/started-games/04-arkanoid/assets/sounds/` a `public/games/bloque-buster/sounds/`. Añadir `onBounce` y `onBlockBreak` opcionales a `BloqueBusterCallbacks`, las constantes `BOUNCE_SOUND_URL` y `BREAK_SOUND_URL`, hacer que `updateBall` devuelva el número de rebotes y emitir los dos eventos desde `engine.ts`. Verificación: `npm run lint`.
+12. En `components/games/bloque-buster-canvas.tsx` precargar los dos `Audio`, reproducirlos con `cloneNode()` desde `onBounce` y `onBlockBreak` (ignorando el rechazo de `play()`) y liberarlos en el cleanup. Actualizar `CLAUDE.md` (el wrapper reproduce los sonidos). Verificación: `npm run dev`, al jugar suenan el rebote y la rotura, y `npm run lint` y `npm run build` terminan sin errores.
 
 ---
 
@@ -181,10 +187,13 @@ Antes de empezar: leer `node_modules/next/dist/docs/01-app` (Client Components, 
 - [ ] "JUGAR DE NUEVO" arranca con 0 puntos, 3 vidas y nivel 1, sin duplicar listeners ni bucles (la velocidad de la bola no cambia tras reiniciar).
 - [ ] FIN abre el modal con la puntuación actual y la paleta deja de responder a teclado y ratón.
 - [ ] Al salir con SALIR o navegar a otra ruta se cancelan el `requestAnimationFrame` y los listeners de teclado y ratón.
+- [ ] Cada rebote de la bola en una pared o en la paleta reproduce `ball-bounce.mp3` y cada bloque roto reproduce `break-sound.mp3`; no suena nada en pausa ni tras el fin de partida.
+- [ ] `/games/bloque-buster/sounds/ball-bounce.mp3` y `/games/bloque-buster/sounds/break-sound.mp3` devuelven el audio (HTTP 200).
+- [ ] Si un sonido no se puede reproducir (autoplay bloqueado o archivo ausente), el juego sigue funcionando sin excepciones no controladas.
 - [ ] Si el spritesheet falla al cargar, el canvas queda negro y no se emite ningún callback ni se crea el motor, sin excepciones no controladas.
 - [ ] `/juegos/asteroides/jugar` y `/juegos/caida/jugar` se juegan igual que antes, y `/juegos/serpentina/jugar` sigue con la arena simulada.
 - [ ] En `public.games`, `bloque-buster` tiene `playable = true` y el resto de columnas no cambian; `get_advisors` (seguridad) no reporta alertas nuevas.
-- [ ] `lib/games/bloque-buster/` no importa React y no referencia `document`, `window`, `Image` ni `Audio`; solo usa `addEventListener`, `requestAnimationFrame` y `performance`.
+- [ ] `lib/games/bloque-buster/` no importa React y no referencia `document`, `window`, `Image` ni `Audio` (el sonido se reproduce en el wrapper); solo usa `addEventListener`, `requestAnimationFrame` y `performance`.
 - [ ] El código no usa `localStorage` ni claves nuevas.
 - [ ] Ningún componente cliente importa `lib/supabase/server.ts` ni `lib/games-repo.ts`.
 
@@ -199,7 +208,10 @@ Antes de empezar: leer `node_modules/next/dist/docs/01-app` (Client Components, 
 - **Sí:** el wrapper carga la imagen y se la pasa al motor como tercer parámetro. Así el motor sigue sin `Image`/`document` y el contrato del resto de reglas se mantiene; es la única extensión de firma respecto a `game-contract.md`.
 - **No:** el offscreen canvas del original. No aporta nada al dibujar con `drawImage` directo.
 - **Sí:** ratón dentro del alcance (`mousemove` sobre el canvas, con conversión de escala). Es el control principal del original.
-- **No:** sonido. Requiere una decisión de autoplay y mute global que merece su propia spec.
+- **Sí:** sonido dentro del alcance, añadido tras la implementación inicial a petición del usuario: los dos efectos del original (`ball-bounce.mp3`, `break-sound.mp3`).
+- **Sí:** el motor emite eventos (`onBounce`, `onBlockBreak`) y el wrapper reproduce el audio. Mantiene el motor sin `Audio` y sirve de plantilla para otros juegos.
+- **No:** mute global ni control de volumen. Quedan para una spec propia que sirva a todos los juegos.
+- **Sí:** reproducir con `cloneNode()` como el original, para permitir sonidos solapados, e ignorar el rechazo de `play()`.
 - **Sí:** la victoria del nivel 5 llama a `onGameOver(score)` y reutiliza el modal de guardado. Evita un overlay y un callback propios.
 - **No:** reiniciar en bucle tras el nivel 5.
 - **Sí:** conservar la física del original (rebote de paleta sin ángulo, bola sin fase de saque, un bloque por fotograma). No se cambia el gameplay.
@@ -222,12 +234,14 @@ Antes de empezar: leer `node_modules/next/dist/docs/01-app` (Client Components, 
 | La victoria dispara `onGameOver` dos veces (último bloque + pérdida de bola) | Estado `gameState` interno: tras `win` o `gameover` el bucle deja de actualizar y el callback se emite una sola vez.     |
 | La bola puede quedar en un bucle horizontal sin bajar                        | Se conserva el original (`vy` nunca es 0); no se cambia la física en esta spec.                                          |
 | Puntuación fuera del `CHECK` de `scores`                                     | Máximo 2080 puntos; `submitScore` ya valida el rango.                                                                    |
+| El navegador bloquea el audio hasta que hay una interacción del usuario      | Se captura el rechazo de `play()`; el juego empieza tras pulsar en la página y la primera interacción lo desbloquea.     |
+| Clones de `Audio` acumulados por rebotes frecuentes                          | Los clones se liberan solos al terminar; el motor emite un evento por rebote, no uno por fotograma.                      |
 
 ---
 
 ## Lo que **no** está en esta spec
 
-- Sonido y mute global.
+- Mute global, volumen y música.
 - Controles táctiles.
 - Canvas HiDPI.
 - Powerups, rebote angular y bloques de varios golpes.

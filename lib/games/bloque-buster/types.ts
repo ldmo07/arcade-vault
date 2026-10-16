@@ -3,6 +3,8 @@ export interface BloqueBusterCallbacks {
   onLives: (lives: number) => void;
   onLevel: (level: number) => void;
   onGameOver: (score: number) => void; // una vez por partida (derrota o victoria)
+  onBounce?: () => void; // una llamada por rebote en pared o paleta
+  onBlockBreak?: () => void; // bloque roto
 }
 
 export interface BloqueBusterHandle {

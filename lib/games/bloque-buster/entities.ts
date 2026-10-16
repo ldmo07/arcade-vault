@@ -64,22 +64,27 @@ function overlaps(a: Rect, b: Rect): boolean {
   );
 }
 
-// Avanza la bola y resuelve rebotes en paredes (izq., der., arriba) y paleta
-export function updateBall(ball: Ball, paddle: Rect, dt: number): void {
+// Avanza la bola y resuelve rebotes en paredes (izq., der., arriba) y paleta.
+// Devuelve cuántos rebotes ocurrieron en el fotograma.
+export function updateBall(ball: Ball, paddle: Rect, dt: number): number {
+  let bounces = 0;
   ball.x += ball.vx * dt;
   ball.y += ball.vy * dt;
 
   if (ball.x <= 0) {
     ball.x = 0;
     ball.vx = Math.abs(ball.vx);
+    bounces++;
   }
   if (ball.x + ball.w >= W) {
     ball.x = W - ball.w;
     ball.vx = -Math.abs(ball.vx);
+    bounces++;
   }
   if (ball.y <= 0) {
     ball.y = 0;
     ball.vy = Math.abs(ball.vy);
+    bounces++;
   }
 
   if (
@@ -91,7 +96,9 @@ export function updateBall(ball: Ball, paddle: Rect, dt: number): void {
   ) {
     ball.y = paddle.y - ball.h;
     ball.vy = -Math.abs(ball.vy);
+    bounces++;
   }
+  return bounces;
 }
 
 export function ballLost(ball: Ball): boolean {

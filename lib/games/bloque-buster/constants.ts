@@ -22,3 +22,5 @@ export const INITIAL_LIVES = 3;
 export const EXPLOSION_DURATION = 150; // ms, 4 frames
 
 export const SPRITESHEET_URL = "/games/bloque-buster/spritesheet-breakout.png";
+export const BOUNCE_SOUND_URL = "/games/bloque-buster/sounds/ball-bounce.mp3";
+export const BREAK_SOUND_URL = "/games/bloque-buster/sounds/break-sound.mp3";

@@ -102,10 +102,12 @@ export function createBloqueBuster(
     if (gameOver) return;
 
     movePaddle(paddle, (keys.right ? 1 : 0) - (keys.left ? 1 : 0), dt);
-    updateBall(ball, paddle, dt);
+    const bounces = updateBall(ball, paddle, dt);
+    for (let i = 0; i < bounces; i++) callbacks.onBounce?.();
 
     const hit = hitBlock(ball, blocks);
     if (hit) {
+      callbacks.onBlockBreak?.();
       explosions.push(createExplosion(hit));
       score += POINTS_PER_BLOCK;
       if (blocks.every((b) => !b.alive)) {
