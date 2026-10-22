@@ -16,6 +16,10 @@ El proyecto sigue Spec Driven Design con las skills `/spec` y `/spec-impl` de `K
 
 Juegos implementados y pendientes: ver `references/implemented-games.md`.
 
+Para decidir qué juego añadir usa el subagente `game-planner` (`.claude/agents/game-planner.md`): registra sus sugerencias en `references/game-suggestions-todo.md` y su memoria en `.claude/agent-memory/game-planner/`.
+
+Para una game jam sobre un tema usa `/game-jam <tema>` (`.claude/skills/game-jam/SKILL.md`): lanza 3 subagentes `game-jam` (`.claude/agents/game-jam.md`) en paralelo, cada uno escribe 2 specs (`01-motor-` y `02-plataforma-`) en `specs/game-jam/<game-id>/`, pregunta al usuario qué juego se va a implementar y deja el veredicto en `specs/game-jam/<tema>-veredicto.md`. Solo genera specs; no implementa.
+
 Contacto: `/about` envía mensajes con Resend vía la Server Action `sendContactMessage` (`app/about/actions.ts`, validación en `lib/contact.ts`, honeypot `website`). Variables: `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` (ver `.env.example`).
 
 Sesión: `lib/session.tsx` (`SessionProvider`, localStorage `av_user`/`av_scores`) es una sesión local de cliente, no Supabase Auth.
