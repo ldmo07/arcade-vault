@@ -18,6 +18,8 @@ Juegos implementados y pendientes: ver `references/implemented-games.md`.
 
 Para decidir qué juego añadir usa el subagente `game-planner` (`.claude/agents/game-planner.md`): registra sus sugerencias en `references/game-suggestions-todo.md` y su memoria en `.claude/agent-memory/game-planner/`.
 
+Para añadir skins (`clasico` por defecto, `neon`, `retro`, todas legibles en oscuro) a un juego usa el subagente `skin-designer` (`.claude/agents/skin-designer.md`) indicándole el juego: trabaja de uno en uno y solo el que le pidas. El estado vive en `references/game-with-themes.md`.
+
 Para una game jam sobre un tema usa `/game-jam <tema>` (`.claude/skills/game-jam/SKILL.md`): lanza 3 subagentes `game-jam` (`.claude/agents/game-jam.md`) en paralelo, cada uno escribe 2 specs (`01-motor-` y `02-plataforma-`) en `specs/game-jam/<game-id>/`, pregunta al usuario qué juego se va a implementar y deja el veredicto en `specs/game-jam/<tema>-veredicto.md`. Solo genera specs; no implementa.
 
 Contacto: `/about` envía mensajes con Resend vía la Server Action `sendContactMessage` (`app/about/actions.ts`, validación en `lib/contact.ts`, honeypot `website`). Variables: `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` (ver `.env.example`).
