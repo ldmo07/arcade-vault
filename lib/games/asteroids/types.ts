@@ -1,3 +1,5 @@
+import type { AsteroidsPalette } from "./skins";
+
 export interface AsteroidsCallbacks {
   onScore: (score: number) => void;
   onLives: (lives: number) => void;
@@ -7,5 +9,6 @@ export interface AsteroidsCallbacks {
 
 export interface AsteroidsHandle {
   setPaused: (paused: boolean) => void;
+  setPalette: (palette: AsteroidsPalette) => void; // cambia de skin en caliente
   destroy: () => void; // cancela rAF y quita listeners; idempotente
 }

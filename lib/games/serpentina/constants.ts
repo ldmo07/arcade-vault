@@ -17,10 +17,4 @@ export const MAX_QUEUED_TURNS = 2;
 
 export const SPRITESHEET_URL = "/games/serpentina/fruits.png";
 
-// Estilo del Snake de Google: tablero ajedrezado verde y serpiente azul
-export const BOARD_COLOR_A = "#aad751";
-export const BOARD_COLOR_B = "#a2d149";
-export const SNAKE_COLOR = "#4674e9";
-export const EYE_WHITE_COLOR = "#ffffff";
-export const EYE_PUPIL_COLOR = "#1b2a4a";
-export const HINT_COLOR = "rgba(255, 255, 255, 0.7)";
+// Los colores viven en ./skins.ts (SKINS.clasico = estilo Snake de Google)

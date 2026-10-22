@@ -1,5 +1,6 @@
 import { H, INITIAL_LIVES, POINTS_PER_BLOCK, W } from "./constants";
 import {
+  type BlockStyle,
   ballLost,
   createBall,
   createBlocks,
@@ -17,6 +18,8 @@ import {
   updateExplosions,
 } from "./entities";
 import { LEVELS } from "./levels";
+import { SKINS, type BloqueBusterPalette } from "./skins";
+import { tintSpritesheet } from "./sprites";
 import type {
   Block,
   BloqueBusterCallbacks,
@@ -41,9 +44,42 @@ export function createBloqueBuster(
   canvas: HTMLCanvasElement,
   callbacks: BloqueBusterCallbacks,
   spritesheet: CanvasImageSource,
+  initialPalette: BloqueBusterPalette = SKINS.clasico,
 ): BloqueBusterHandle {
   const ctx = canvas.getContext("2d");
-  if (!ctx) return { setPaused: () => {}, destroy: () => {} };
+  if (!ctx)
+    return { setPaused: () => {}, setPalette: () => {}, destroy: () => {} };
+
+  // ── Skin ────────────────────────────────────────────────────────────────────
+  // Solo afecta al dibujo; se cambia en caliente con setPalette. Las copias
+  // teñidas del spritesheet se generan una vez por tinte y se reutilizan.
+  const tinted = new Map<string, CanvasImageSource>();
+  const sheetFor = (tint: string | null): CanvasImageSource => {
+    if (!tint) return spritesheet;
+    let sheet = tinted.get(tint);
+    if (!sheet) {
+      sheet = tintSpritesheet(spritesheet, tint);
+      tinted.set(tint, sheet);
+    }
+    return sheet;
+  };
+
+  let palette = initialPalette;
+  let sheets = { blocks: spritesheet, player: spritesheet };
+  let blockStyle: BlockStyle = {};
+
+  const applyPalette = (next: BloqueBusterPalette) => {
+    palette = next;
+    sheets = {
+      blocks: sheetFor(next.blockTint),
+      player: sheetFor(next.playerTint),
+    };
+    blockStyle = {
+      glowColor: next.glow > 0 ? (c) => next.blockGlow[c] : undefined,
+      outline: next.blockOutline,
+    };
+  };
+  applyPalette(initialPalette);
 
   // ── Estado ──────────────────────────────────────────────────────────────────
   const paddle = createPaddle();
@@ -139,13 +175,53 @@ export function createBloqueBuster(
   };
 
   // ── Draw ────────────────────────────────────────────────────────────────────
+  const drawGrid = (color: string, size: number) => {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = size; x < W; x += size) {
+      ctx.moveTo(x + 0.5, 0);
+      ctx.lineTo(x + 0.5, H);
+    }
+    for (let y = size; y < H; y += size) {
+      ctx.moveTo(0, y + 0.5);
+      ctx.lineTo(W, y + 0.5);
+    }
+    ctx.stroke();
+  };
+
+  // Paredes donde rebota la bola (izquierda, arriba y derecha); abajo no hay
+  const drawBorder = (color: string, width: number) => {
+    const half = width / 2;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineJoin = "miter";
+    ctx.lineCap = "butt";
+    ctx.shadowColor = color;
+    ctx.beginPath();
+    ctx.moveTo(half, H);
+    ctx.lineTo(half, half);
+    ctx.lineTo(W - half, half);
+    ctx.lineTo(W - half, H);
+    ctx.stroke();
+  };
+
   const draw = () => {
-    ctx.fillStyle = "#000";
+    ctx.imageSmoothingEnabled = palette.smoothing;
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = palette.background;
     ctx.fillRect(0, 0, W, H);
-    drawBlocks(ctx, spritesheet, blocks);
-    drawExplosions(ctx, spritesheet, explosions);
-    drawPaddle(ctx, spritesheet, paddle);
-    drawBall(ctx, spritesheet, ball);
+    if (palette.grid) drawGrid(palette.grid, palette.gridSize);
+
+    ctx.shadowBlur = palette.glow;
+    if (palette.border) drawBorder(palette.border, palette.borderWidth);
+    drawBlocks(ctx, sheets.blocks, blocks, blockStyle);
+    drawExplosions(ctx, sheets.blocks, explosions, blockStyle);
+    ctx.shadowColor = palette.paddleGlow;
+    drawPaddle(ctx, sheets.player, paddle);
+    ctx.shadowColor = palette.ballGlow;
+    drawBall(ctx, sheets.player, ball);
+    ctx.shadowBlur = 0;
   };
 
   // ── Loop ────────────────────────────────────────────────────────────────────
@@ -204,6 +280,10 @@ export function createBloqueBuster(
         keys.left = false;
         keys.right = false;
       }
+    },
+    setPalette(next: BloqueBusterPalette) {
+      if (destroyed) return;
+      applyPalette(next);
     },
     destroy() {
       if (destroyed) return;

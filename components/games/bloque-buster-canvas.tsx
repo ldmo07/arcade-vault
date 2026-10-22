@@ -9,10 +9,12 @@ import {
   W,
 } from "@/lib/games/bloque-buster/constants";
 import { createBloqueBuster } from "@/lib/games/bloque-buster/engine";
+import { SKINS } from "@/lib/games/bloque-buster/skins";
 import type {
   BloqueBusterCallbacks,
   BloqueBusterHandle,
 } from "@/lib/games/bloque-buster/types";
+import { DEFAULT_SKIN, type SkinId } from "@/lib/games/skins";
 
 // onLives y onLevel son opcionales para encajar en GameCanvasProps del registro
 interface BloqueBusterCanvasProps extends Omit<
@@ -20,14 +22,19 @@ interface BloqueBusterCanvasProps extends Omit<
   "onLives" | "onLevel"
 > {
   paused: boolean;
+  skin?: SkinId;
   onLives?: BloqueBusterCallbacks["onLives"];
   onLevel?: BloqueBusterCallbacks["onLevel"];
 }
 
-type BloqueBusterCanvasCallbacks = Omit<BloqueBusterCanvasProps, "paused">;
+type BloqueBusterCanvasCallbacks = Omit<
+  BloqueBusterCanvasProps,
+  "paused" | "skin"
+>;
 
 export function BloqueBusterCanvas({
   paused,
+  skin = DEFAULT_SKIN,
   onScore,
   onLives,
   onLevel,
@@ -36,6 +43,9 @@ export function BloqueBusterCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const handleRef = useRef<BloqueBusterHandle | null>(null);
   const pausedRef = useRef(paused);
+  // Skin vigente: el motor nace al cargar el spritesheet (puede ser después
+  // de un cambio de skin), así que lee la última y no la inicial
+  const skinRef = useRef(skin);
   const callbacksRef = useRef<BloqueBusterCanvasCallbacks>({
     onScore,
     onLives,
@@ -78,6 +88,7 @@ export function BloqueBusterCanvas({
           onBlockBreak: () => play(breakSound),
         },
         img,
+        SKINS[skinRef.current],
       );
       handleRef.current = handle;
       handle.setPaused(pausedRef.current);
@@ -96,6 +107,12 @@ export function BloqueBusterCanvas({
     pausedRef.current = paused;
     handleRef.current?.setPaused(paused);
   }, [paused]);
+
+  // Cambio de skin en caliente, sin reiniciar la partida
+  useEffect(() => {
+    skinRef.current = skin;
+    handleRef.current?.setPalette(SKINS[skin]);
+  }, [skin]);
 
   return (
     <canvas

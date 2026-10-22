@@ -626,6 +626,26 @@ a.chip { display: inline-block; text-decoration: none; }
 .hud-stat.lives .v { color: var(--magenta); text-shadow: 0 0 6px rgba(255,0,110,0.5); }
 .hud-stat.level .v { color: var(--yellow); text-shadow: 0 0 6px rgba(245,255,0,0.5); }
 .hud-actions { display: flex; gap: 10px; }
+/* Selector de skin: mono (la fuente pixel no tiene Á/Ó) con flecha propia */
+.skin-select {
+  appearance: none;
+  min-height: 44px;
+  padding: 10px 34px 10px 12px;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--cyan);
+  background:
+    linear-gradient(45deg, transparent 50%, var(--cyan) 50%) calc(100% - 16px) 50% / 6px 6px no-repeat,
+    linear-gradient(-45deg, transparent 50%, var(--cyan) 50%) calc(100% - 10px) 50% / 6px 6px no-repeat,
+    var(--bg-2);
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+.skin-select:hover { border-color: var(--cyan); }
+.skin-select:focus-visible { outline: none; border-color: var(--cyan); box-shadow: 0 0 10px rgba(0,245,255,0.35); }
+.skin-select option { background: var(--bg-2); color: var(--ink); }
 
 .crt {
   position: relative;

@@ -1,3 +1,5 @@
+import type { BloqueBusterPalette } from "./skins";
+
 export interface BloqueBusterCallbacks {
   onScore: (score: number) => void;
   onLives: (lives: number) => void;
@@ -9,6 +11,7 @@ export interface BloqueBusterCallbacks {
 
 export interface BloqueBusterHandle {
   setPaused: (paused: boolean) => void;
+  setPalette: (palette: BloqueBusterPalette) => void; // cambio de skin en caliente
   destroy: () => void; // cancela rAF y quita listeners; idempotente
 }
 

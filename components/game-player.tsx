@@ -1,10 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { submitScore } from "@/app/juegos/[id]/jugar/actions";
 import type { GameRow } from "@/lib/data";
 import { GAME_REGISTRY, type HudStat } from "@/lib/games/registry";
+import {
+  DEFAULT_SKIN,
+  isSkinId,
+  loadSkin,
+  saveSkin,
+  SKIN_IDS,
+  SKIN_LABELS,
+  subscribeSkin,
+} from "@/lib/games/skins";
 import { useSession } from "@/lib/session";
 
 // HUD de los juegos simulados (sin entrada en el registro)
@@ -31,6 +40,13 @@ export function GamePlayer({ game }: { game: GameRow }) {
   const entry = GAME_REGISTRY[game.id];
   const Canvas = entry?.Canvas;
   const hud = entry?.hud ?? DEFAULT_HUD;
+  const hasSkins = !!entry?.skins;
+  // Skin guardada por juego; servidor e hidratación usan la de por defecto
+  const skin = useSyncExternalStore(
+    subscribeSkin,
+    () => loadSkin(game.id),
+    () => DEFAULT_SKIN,
+  );
 
   // La sesión se lee tras la hidratación; el nombre escrito en el modal tiene prioridad.
   const name = typedName ?? user?.name ?? "INVITADO";
@@ -105,6 +121,31 @@ export function GamePlayer({ game }: { game: GameRow }) {
             </div>
           ))}
         </div>
+        {hasSkins && (
+          <div className="hud-stat">
+            <label className="l" htmlFor="skin-select">
+              Skin
+            </label>
+            <select
+              id="skin-select"
+              className="skin-select"
+              value={skin}
+              onChange={(e) => {
+                if (!isSkinId(e.target.value)) return;
+                saveSkin(game.id, e.target.value);
+                // Devuelve el foco al juego: con el select enfocado las flechas
+                // cambiarían de skin en vez de mover la nave
+                e.target.blur();
+              }}
+            >
+              {SKIN_IDS.map((id) => (
+                <option key={id} value={id}>
+                  {SKIN_LABELS[id]}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="hud-actions">
           <button
             type="button"
@@ -132,6 +173,7 @@ export function GamePlayer({ game }: { game: GameRow }) {
             <Canvas
               key={runId}
               paused={paused || over}
+              skin={hasSkins ? skin : undefined}
               onScore={setScore}
               onLives={setLives}
               onLines={setLines}

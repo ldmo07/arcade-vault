@@ -20,7 +20,14 @@ import {
   explosionFrame,
   EXPLOSION_FRAME_COUNT,
 } from "./sprites";
-import type { Ball, Block, Explosion, LevelDef, Rect } from "./types";
+import type {
+  Ball,
+  Block,
+  BlockColor,
+  Explosion,
+  LevelDef,
+  Rect,
+} from "./types";
 
 export function createPaddle(): Rect {
   return { x: (W - PADDLE_W) / 2, y: PADDLE_Y, w: PADDLE_W, h: PADDLE_H };
@@ -137,13 +144,28 @@ export function updateExplosions(
   return explosions.filter((exp) => exp.elapsed < EXPLOSION_DURATION);
 }
 
+// Estilo de skin opcional: color del glow por bloque (con ctx.shadowBlur ya
+// fijado por el motor) y contorno duro. Sin estilo se dibuja el sprite tal cual.
+export interface BlockStyle {
+  glowColor?: (color: BlockColor) => string;
+  outline?: string | null;
+}
+
 export function drawBlocks(
   ctx: CanvasRenderingContext2D,
   img: CanvasImageSource,
   blocks: Block[],
+  style?: BlockStyle,
 ): void {
   for (const b of blocks) {
-    if (b.alive) drawSprite(ctx, img, `block_${b.color}`, b.x, b.y, b.w, b.h);
+    if (!b.alive) continue;
+    if (style?.glowColor) ctx.shadowColor = style.glowColor(b.color);
+    drawSprite(ctx, img, `block_${b.color}`, b.x, b.y, b.w, b.h);
+    if (style?.outline) {
+      ctx.strokeStyle = style.outline;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(b.x + 1, b.y + 1, b.w - 2, b.h - 2);
+    }
   }
 }
 
@@ -151,8 +173,10 @@ export function drawExplosions(
   ctx: CanvasRenderingContext2D,
   img: CanvasImageSource,
   explosions: Explosion[],
+  style?: BlockStyle,
 ): void {
   for (const exp of explosions) {
+    if (style?.glowColor) ctx.shadowColor = style.glowColor(exp.color);
     const index = Math.min(
       Math.floor((exp.elapsed / EXPLOSION_DURATION) * EXPLOSION_FRAME_COUNT),
       EXPLOSION_FRAME_COUNT - 1,
