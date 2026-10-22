@@ -1,19 +1,14 @@
 import {
-  BOARD_COLOR_A,
-  BOARD_COLOR_B,
   CELL,
   COLS,
-  EYE_PUPIL_COLOR,
-  EYE_WHITE_COLOR,
   H,
-  HINT_COLOR,
   INITIAL_LENGTH,
   MAX_QUEUED_TURNS,
   ROWS,
-  SNAKE_COLOR,
   START_CELL,
   W,
 } from "./constants";
+import type { SerpentinaPalette } from "./skins";
 import { FRUIT_NAMES, drawFruit } from "./sprites";
 import type { Cell, Direction, Fruit } from "./types";
 
@@ -103,21 +98,54 @@ export function spawnFruit(snake: Snake): Fruit | null {
   return { ...cell, sprite };
 }
 
-function drawBoard(ctx: CanvasRenderingContext2D): void {
+function drawBoard(ctx: CanvasRenderingContext2D, p: SerpentinaPalette): void {
   for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLS; col++) {
-      ctx.fillStyle = (row + col) % 2 === 0 ? BOARD_COLOR_A : BOARD_COLOR_B;
+      ctx.fillStyle = (row + col) % 2 === 0 ? p.boardA : p.boardB;
       ctx.fillRect(col * CELL, row * CELL, CELL, CELL);
     }
   }
 }
 
-function drawSnake(ctx: CanvasRenderingContext2D, snake: Snake): void {
+// Marco tras la fruta en las skins oscuras: garantiza contraste aunque el
+// sprite sea oscuro. El clásico no lo lleva (fruitFrame null).
+function drawFruitFrame(
+  ctx: CanvasRenderingContext2D,
+  fruit: Fruit,
+  p: SerpentinaPalette,
+): void {
+  if (!p.fruitFrame) return;
+  const x = fruit.col * CELL + CELL / 2;
+  const y = fruit.row * CELL + CELL / 2;
   ctx.save();
-  ctx.strokeStyle = SNAKE_COLOR;
+  ctx.strokeStyle = p.fruitFrame;
+  ctx.lineWidth = 3;
+  ctx.lineJoin = p.lineJoin;
+  if (p.glow > 0) {
+    ctx.shadowColor = p.fruitFrame;
+    ctx.shadowBlur = p.glow;
+  }
+  ctx.beginPath();
+  if (p.fruitFrameShape === "round") ctx.arc(x, y, CELL * 0.46, 0, Math.PI * 2);
+  else ctx.rect(x - CELL * 0.45, y - CELL * 0.45, CELL * 0.9, CELL * 0.9);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawSnake(
+  ctx: CanvasRenderingContext2D,
+  snake: Snake,
+  p: SerpentinaPalette,
+): void {
+  ctx.save();
+  ctx.strokeStyle = p.snake;
   ctx.lineWidth = CELL * 0.8;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
+  ctx.lineCap = p.lineCap;
+  ctx.lineJoin = p.lineJoin;
+  if (p.glow > 0) {
+    ctx.shadowColor = p.snake;
+    ctx.shadowBlur = p.glow;
+  }
   ctx.beginPath();
   snake.cells.forEach((c, i) => {
     const x = c.col * CELL + CELL / 2;
@@ -126,28 +154,42 @@ function drawSnake(ctx: CanvasRenderingContext2D, snake: Snake): void {
     else ctx.lineTo(x, y);
   });
   ctx.stroke();
+  ctx.shadowBlur = 0;
 
-  // Ojos: dos círculos a los lados de la cabeza, orientados según la dirección
+  // Ojos: dos círculos (o cuadrados en retro) a los lados de la cabeza,
+  // orientados según la dirección
   const head = snake.cells[0];
   const hx = head.col * CELL + CELL / 2;
   const hy = head.row * CELL + CELL / 2;
   ctx.translate(hx, hy);
   ctx.rotate(ANGLES[snake.dir]);
   for (const side of [-1, 1]) {
-    ctx.fillStyle = EYE_WHITE_COLOR;
+    const y = side * CELL * 0.2;
+    if (p.eyeShape === "square") {
+      ctx.fillStyle = p.eyeWhite;
+      ctx.fillRect(CELL * -0.04, y - CELL * 0.14, CELL * 0.28, CELL * 0.28);
+      ctx.fillStyle = p.eyePupil;
+      ctx.fillRect(CELL * 0.08, y - CELL * 0.07, CELL * 0.14, CELL * 0.14);
+      continue;
+    }
+    ctx.fillStyle = p.eyeWhite;
     ctx.beginPath();
-    ctx.arc(CELL * 0.1, side * CELL * 0.2, CELL * 0.14, 0, Math.PI * 2);
+    ctx.arc(CELL * 0.1, y, CELL * 0.14, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = EYE_PUPIL_COLOR;
+    ctx.fillStyle = p.eyePupil;
     ctx.beginPath();
-    ctx.arc(CELL * 0.14, side * CELL * 0.2, CELL * 0.07, 0, Math.PI * 2);
+    ctx.arc(CELL * 0.14, y, CELL * 0.07, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
 }
 
-// Chevron blanco en la celda delante de la cabeza mientras se espera la primera dirección
-function drawHint(ctx: CanvasRenderingContext2D, snake: Snake): void {
+// Chevron en la celda delante de la cabeza mientras se espera la primera dirección
+function drawHint(
+  ctx: CanvasRenderingContext2D,
+  snake: Snake,
+  p: SerpentinaPalette,
+): void {
   const v = VECTORS[snake.dir];
   const head = snake.cells[0];
   const x = (head.col + v.col) * CELL + CELL / 2;
@@ -155,10 +197,14 @@ function drawHint(ctx: CanvasRenderingContext2D, snake: Snake): void {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(ANGLES[snake.dir]);
-  ctx.strokeStyle = HINT_COLOR;
+  ctx.strokeStyle = p.hint;
   ctx.lineWidth = 4;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
+  ctx.lineCap = p.lineCap === "square" ? "butt" : "round";
+  ctx.lineJoin = p.lineJoin;
+  if (p.glow > 0) {
+    ctx.shadowColor = p.hint;
+    ctx.shadowBlur = p.glow;
+  }
   ctx.beginPath();
   ctx.moveTo(-6, -10);
   ctx.lineTo(6, 0);
@@ -173,10 +219,14 @@ export function draw(
   snake: Snake,
   fruit: Fruit | null,
   waiting: boolean,
+  palette: SerpentinaPalette,
 ): void {
   ctx.clearRect(0, 0, W, H);
-  drawBoard(ctx);
-  if (fruit) drawFruit(ctx, img, fruit.sprite, fruit);
-  drawSnake(ctx, snake);
-  if (waiting) drawHint(ctx, snake);
+  drawBoard(ctx, palette);
+  if (fruit) {
+    drawFruitFrame(ctx, fruit, palette);
+    drawFruit(ctx, img, fruit.sprite, fruit);
+  }
+  drawSnake(ctx, snake, palette);
+  if (waiting) drawHint(ctx, snake, palette);
 }

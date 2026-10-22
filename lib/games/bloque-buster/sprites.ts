@@ -46,6 +46,29 @@ export function explosionFrame(color: BlockColor, index: number): Frame {
   };
 }
 
+// Copia del spritesheet teñida de un solo tono: el modo "color" conserva la
+// luminosidad de cada píxel y "destination-in" recupera la transparencia.
+export function tintSpritesheet(
+  img: CanvasImageSource,
+  tint: string,
+): CanvasImageSource {
+  const source = img as HTMLImageElement;
+  const w = source.naturalWidth || (img as HTMLCanvasElement).width;
+  const h = source.naturalHeight || (img as HTMLCanvasElement).height;
+  const off = document.createElement("canvas");
+  off.width = w;
+  off.height = h;
+  const octx = off.getContext("2d");
+  if (!octx || !w || !h) return img;
+  octx.drawImage(img, 0, 0);
+  octx.globalCompositeOperation = "color";
+  octx.fillStyle = tint;
+  octx.fillRect(0, 0, w, h);
+  octx.globalCompositeOperation = "destination-in";
+  octx.drawImage(img, 0, 0);
+  return off;
+}
+
 export function drawFrame(
   ctx: CanvasRenderingContext2D,
   img: CanvasImageSource,

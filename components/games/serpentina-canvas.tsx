@@ -1,25 +1,23 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import {
-  BOARD_COLOR_A,
-  H,
-  SPRITESHEET_URL,
-  W,
-} from "@/lib/games/serpentina/constants";
+import { H, SPRITESHEET_URL, W } from "@/lib/games/serpentina/constants";
 import { createSerpentina } from "@/lib/games/serpentina/engine";
+import { SKINS } from "@/lib/games/serpentina/skins";
 import type {
   SerpentinaCallbacks,
   SerpentinaHandle,
 } from "@/lib/games/serpentina/types";
+import { DEFAULT_SKIN, type SkinId } from "@/lib/games/skins";
 
 // onLevel es opcional para encajar en GameCanvasProps del registro
 interface SerpentinaCanvasProps extends Omit<SerpentinaCallbacks, "onLevel"> {
   paused: boolean;
+  skin?: SkinId;
   onLevel?: SerpentinaCallbacks["onLevel"];
 }
 
-type SerpentinaCanvasCallbacks = Omit<SerpentinaCanvasProps, "paused">;
+type SerpentinaCanvasCallbacks = Omit<SerpentinaCanvasProps, "paused" | "skin">;
 
 const BEEP_GAIN = 0.08;
 
@@ -47,6 +45,7 @@ function playBeep(
 
 export function SerpentinaCanvas({
   paused,
+  skin = DEFAULT_SKIN,
   onScore,
   onLevel,
   onGameOver,
@@ -54,6 +53,8 @@ export function SerpentinaCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const handleRef = useRef<SerpentinaHandle | null>(null);
   const pausedRef = useRef(paused);
+  // El motor nace tras cargar el sprite: lee la skin vigente en ese momento
+  const skinRef = useRef(skin);
   const callbacksRef = useRef<SerpentinaCanvasCallbacks>({
     onScore,
     onLevel,
@@ -104,6 +105,7 @@ export function SerpentinaCanvas({
           onCrash: () => beep("sawtooth", 220, 80, 0.3),
         },
         img,
+        SKINS[skinRef.current],
       );
       handleRef.current = handle;
       handle.setPaused(pausedRef.current);
@@ -124,13 +126,19 @@ export function SerpentinaCanvas({
     handleRef.current?.setPaused(paused);
   }, [paused]);
 
+  // Cambio de skin en caliente, sin reiniciar la partida
+  useEffect(() => {
+    skinRef.current = skin;
+    handleRef.current?.setPalette(SKINS[skin]);
+  }, [skin]);
+
   return (
     <canvas
       ref={canvasRef}
       width={W}
       height={H}
       className="block h-full w-full"
-      style={{ backgroundColor: BOARD_COLOR_A }}
+      style={{ backgroundColor: SKINS[skin].boardA }}
       role="img"
       aria-label="Juego Serpentina"
     />

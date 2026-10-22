@@ -15,6 +15,7 @@ import {
   rand,
   Ship,
 } from "./entities";
+import { SKINS, type AsteroidsPalette } from "./skins";
 import type { AsteroidsCallbacks, AsteroidsHandle } from "./types";
 
 type State = "playing" | "dead" | "gameover";
@@ -35,9 +36,14 @@ function isTextTarget(target: EventTarget | null) {
 export function createAsteroids(
   canvas: HTMLCanvasElement,
   callbacks: AsteroidsCallbacks,
+  initialPalette: AsteroidsPalette = SKINS.clasico,
 ): AsteroidsHandle {
   const ctx = canvas.getContext("2d");
-  if (!ctx) return { setPaused: () => {}, destroy: () => {} };
+  if (!ctx)
+    return { setPaused: () => {}, setPalette: () => {}, destroy: () => {} };
+
+  // Solo afecta al dibujo; se puede cambiar en caliente con setPalette
+  let palette = initialPalette;
 
   // ── Input ───────────────────────────────────────────────────────────────────
   let keys: Keys = {};
@@ -212,21 +218,25 @@ export function createAsteroids(
 
   // ── Draw ────────────────────────────────────────────────────────────────────
   const draw = () => {
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = palette.background;
     ctx.fillRect(0, 0, W, H);
 
-    particles.forEach((p) => p.draw(ctx));
-    asteroids.forEach((a) => a.draw(ctx));
-    powerUps.forEach((p) => p.draw(ctx));
-    bullets.forEach((b) => b.draw(ctx));
-    ship.draw(ctx);
+    particles.forEach((p) => p.draw(ctx, palette));
+    asteroids.forEach((a) => a.draw(ctx, palette));
+    powerUps.forEach((p) => p.draw(ctx, palette));
+    bullets.forEach((b) => b.draw(ctx, palette));
+    ship.draw(ctx, palette);
 
     if (ship.tripleShot > 0) {
+      ctx.save();
       ctx.font = "15px monospace";
       ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
-      ctx.fillStyle = "#0ff";
+      ctx.shadowBlur = palette.glow;
+      ctx.shadowColor = palette.glow > 0 ? palette.hudText : "transparent";
+      ctx.fillStyle = palette.hudText;
       ctx.fillText(`3x  ${ship.tripleShot.toFixed(1)}s`, 14, 26);
+      ctx.restore();
     }
   };
 
@@ -275,6 +285,10 @@ export function createAsteroids(
         keys = {};
         justPressed = {};
       }
+    },
+    setPalette(value: AsteroidsPalette) {
+      // El loop redibuja cada frame (también en pausa), así que basta con asignar
+      palette = value;
     },
     destroy() {
       if (destroyed) return;

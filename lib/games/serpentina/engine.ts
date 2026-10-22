@@ -14,6 +14,7 @@ import {
   queueTurn,
   spawnFruit,
 } from "./entities";
+import type { SerpentinaPalette } from "./skins";
 import type {
   Direction,
   Fruit,
@@ -45,11 +46,14 @@ export function createSerpentina(
   canvas: HTMLCanvasElement,
   callbacks: SerpentinaCallbacks,
   spritesheet: CanvasImageSource,
+  initialPalette: SerpentinaPalette,
 ): SerpentinaHandle {
   const ctx = canvas.getContext("2d");
-  if (!ctx) return { setPaused: () => {}, destroy: () => {} };
+  if (!ctx)
+    return { setPaused: () => {}, setPalette: () => {}, destroy: () => {} };
 
   // ── Estado ──────────────────────────────────────────────────────────────────
+  let palette = initialPalette; // solo afecta al dibujo, nunca a la lógica
   const snake = createSnake();
   let fruit: Fruit | null = spawnFruit(snake);
   let score = 0;
@@ -134,7 +138,7 @@ export function createSerpentina(
       lastTime = ts;
       update(dt);
     }
-    draw(ctx, spritesheet, snake, fruit, waiting);
+    draw(ctx, spritesheet, snake, fruit, waiting, palette);
     rafId = requestAnimationFrame(loop);
   };
 
@@ -171,6 +175,9 @@ export function createSerpentina(
       lastTime = null;
       accumulator = 0;
       if (value) snake.turnQueue.length = 0;
+    },
+    setPalette(value: SerpentinaPalette) {
+      palette = value;
     },
     destroy() {
       if (destroyed) return;

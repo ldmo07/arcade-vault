@@ -1,3 +1,5 @@
+import type { SerpentinaPalette } from "./skins";
+
 export interface SerpentinaCallbacks {
   onScore: (score: number) => void;
   onLevel: (level: number) => void;
@@ -8,6 +10,7 @@ export interface SerpentinaCallbacks {
 
 export interface SerpentinaHandle {
   setPaused: (paused: boolean) => void;
+  setPalette: (palette: SerpentinaPalette) => void; // cambio de skin en caliente
   destroy: () => void; // cancela rAF y quita listeners; idempotente
 }
 

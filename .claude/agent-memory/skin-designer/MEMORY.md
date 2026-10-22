@@ -1,0 +1,3 @@
+- [Selector como desplegable](preferencia-selector-desplegable.md) — el usuario quiere `<select>`, no chips; ya está en GamePlayer
+- [Trampas al refactorizar motores](trampas-motores.md) — hook eslint --fix, CRLF, fuente pixel sin Á/Ó, verificar sin Supabase (mock + playwright-core)
+- [Decisiones de paletas](decisiones-paletas.md) — identidad neón/retro por juego y criterio de contraste con scanlines

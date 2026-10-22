@@ -3,10 +3,12 @@
 import { useEffect, useRef } from "react";
 import { H, W } from "@/lib/games/asteroids/constants";
 import { createAsteroids } from "@/lib/games/asteroids/engine";
+import { SKINS } from "@/lib/games/asteroids/skins";
 import type {
   AsteroidsCallbacks,
   AsteroidsHandle,
 } from "@/lib/games/asteroids/types";
+import { DEFAULT_SKIN, type SkinId } from "@/lib/games/skins";
 
 // onLives y onLevel son opcionales para encajar en GameCanvasProps del registro
 interface AsteroidsCanvasProps extends Omit<
@@ -14,14 +16,16 @@ interface AsteroidsCanvasProps extends Omit<
   "onLives" | "onLevel"
 > {
   paused: boolean;
+  skin?: SkinId;
   onLives?: AsteroidsCallbacks["onLives"];
   onLevel?: AsteroidsCallbacks["onLevel"];
 }
 
-type AsteroidsCanvasCallbacks = Omit<AsteroidsCanvasProps, "paused">;
+type AsteroidsCanvasCallbacks = Omit<AsteroidsCanvasProps, "paused" | "skin">;
 
 export function AsteroidsCanvas({
   paused,
+  skin = DEFAULT_SKIN,
   onScore,
   onLives,
   onLevel,
@@ -29,6 +33,8 @@ export function AsteroidsCanvas({
 }: AsteroidsCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const handleRef = useRef<AsteroidsHandle | null>(null);
+  // Skin con la que nace el motor; los cambios posteriores van por setPalette
+  const initialSkinRef = useRef(skin);
   const callbacksRef = useRef<AsteroidsCanvasCallbacks>({
     onScore,
     onLives,
@@ -44,12 +50,16 @@ export function AsteroidsCanvas({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const handle = createAsteroids(canvas, {
-      onScore: (v) => callbacksRef.current.onScore(v),
-      onLives: (v) => callbacksRef.current.onLives?.(v),
-      onLevel: (v) => callbacksRef.current.onLevel?.(v),
-      onGameOver: (v) => callbacksRef.current.onGameOver(v),
-    });
+    const handle = createAsteroids(
+      canvas,
+      {
+        onScore: (v) => callbacksRef.current.onScore(v),
+        onLives: (v) => callbacksRef.current.onLives?.(v),
+        onLevel: (v) => callbacksRef.current.onLevel?.(v),
+        onGameOver: (v) => callbacksRef.current.onGameOver(v),
+      },
+      SKINS[initialSkinRef.current],
+    );
     handleRef.current = handle;
     return () => {
       handle.destroy();
@@ -60,6 +70,11 @@ export function AsteroidsCanvas({
   useEffect(() => {
     handleRef.current?.setPaused(paused);
   }, [paused]);
+
+  // Cambio de skin en caliente, sin reiniciar la partida
+  useEffect(() => {
+    handleRef.current?.setPalette(SKINS[skin]);
+  }, [skin]);
 
   return (
     <canvas
